@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS bronze.arquivo (
   consulta       STRING           COMMENT 'consulta literal da coleta. NULL quando não recuperável — ver §7.3 do objetivo',
   periodo_inicio DATE,
   periodo_fim    DATE,
-  ingerido_em    TIMESTAMP NOT NULL DEFAULT current_timestamp()
+  ingerido_em    TIMESTAMP NOT NULL COMMENT 'preenchido explicitamente pela ingestão — o Delta não aplica DEFAULT em gravação vinda de DataFrame'
 ) COMMENT 'Um objeto bruto ingerido. Grão: um arquivo.';
 
 ALTER TABLE bronze.arquivo ADD CONSTRAINT arquivo_fonte_valida
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS bronze.registro (
   arquivo_id  BIGINT NOT NULL,
   linha       BIGINT NOT NULL COMMENT 'posição do registro dentro do arquivo — reprodutibilidade da ordem',
   payload     STRING NOT NULL COMMENT 'o registro exatamente como veio, em JSON',
-  ingerido_em TIMESTAMP NOT NULL DEFAULT current_timestamp()
+  ingerido_em TIMESTAMP NOT NULL COMMENT 'preenchido explicitamente pela ingestão'
 ) COMMENT 'Registro bruto, sem interpretação. Grão: uma postagem como a fonte a entregou.';
 
 -- =====================================================================

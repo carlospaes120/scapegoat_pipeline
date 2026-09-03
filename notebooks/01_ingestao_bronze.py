@@ -166,6 +166,7 @@ leitor = ler_graphql if cfg["fonte"] == "graphql" else ler_jsonl
 # COMMAND ----------
 
 from pyspark.sql import Row
+from pyspark.sql.functions import current_timestamp
 
 total_registros = 0
 consultas_vistas = set()
@@ -179,8 +180,9 @@ for item in novos:
     spark.sql(
         """
         INSERT INTO bronze.arquivo
-          (caso_slug, fonte, uri, formato, sha256, bytes, consulta, periodo_inicio, periodo_fim)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (caso_slug, fonte, uri, formato, sha256, bytes, consulta,
+           periodo_inicio, periodo_fim, ingerido_em)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS DATE), CAST(? AS DATE), current_timestamp())
         """,
         args=[CASO, cfg["fonte"], item["uri"], cfg["formato"], item["sha256"],
               item["bytes"], meta["consulta"],
@@ -195,6 +197,7 @@ for item in novos:
         (spark.createDataFrame(
             [Row(arquivo_id=int(arquivo_id), linha=i, payload=p)
              for i, p in enumerate(registros, start=1)])
+         .withColumn("ingerido_em", current_timestamp())
          .write.mode("append").saveAsTable("bronze.registro"))
     except Exception:
         spark.sql("DELETE FROM bronze.arquivo WHERE arquivo_id = ?", args=[int(arquivo_id)])
