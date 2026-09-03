@@ -1,0 +1,61 @@
+# =====================================================================
+# Regra número um do repositório: DADO NÃO ENTRA NO GIT.
+#
+# O acervo contém postagens públicas de pessoas identificáveis em
+# episódios sensíveis. O enunciado do MVP dispensa expressamente a
+# disponibilização dos dados (item 4), e a Política de Dados do projeto
+# proíbe publicar texto de postagem, nome de usuário ou perfil.
+#
+# Este arquivo existe desde o primeiro commit — não como remendo depois.
+# =====================================================================
+
+# --- dados, em qualquer formato ---
+*.jsonl
+*.json
+*.csv
+*.tsv
+*.parquet
+*.gexf
+*.graphml
+data/
+dados/
+raw/
+bruto/
+
+# exceções: metadados e manifestos que NÃO contêm postagens
+!casos/*.json
+!catalogo/*.json
+!package.json
+!.vscode/*.json
+
+# --- segredos ---
+.env
+.env.*
+*cookies*.json
+*token*
+*credential*
+*.pem
+*.key
+
+# --- modelos e artefatos pesados ---
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+checkpoints/
+mlruns/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+*.egg-info/
+
+# --- sistema e editor ---
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
