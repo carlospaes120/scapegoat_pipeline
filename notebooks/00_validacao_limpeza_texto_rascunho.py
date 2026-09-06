@@ -10,7 +10,6 @@
 # MAGIC 2. **Teste A** - a expressao Spark SQL reproduz `clean_text` a partir de `text`? (em memoria)
 # MAGIC 3. Preenche `silver.postagem.texto_limpo` com a mesma expressao.
 # MAGIC 4. **Teste B** - a coluna materializada na Silver bate com `clean_text` do gabarito, juntando por id?
-# MAGIC    (o marcador `[IRONY]`, anotacao humana presente em 21 pares do gabarito, e removido antes de comparar)
 # MAGIC 5. Grava o resultado em `silver.qc_resultado`.
 
 # COMMAND ----------
@@ -26,14 +25,11 @@ ARQUIVOS = ["merged_train.jsonl", "merged_val.jsonl", "merged_test.jsonl"]
 
 # A regra canonica (claude/especificacao-limpeza-texto.md), como expressao SQL.
 # __COL__ e substituido pelo nome da coluna de entrada.
-# Passo 0: \p{Z} troca espacos Unicode (U+00A0 nao separavel etc.) por espaco comum,
-# reproduzindo o \s do Python, que e Unicode; o \s do Java e ASCII.
 LIMPEZA_SQL = r"""
 trim(regexp_replace(
   regexp_replace(
     regexp_replace(
-      regexp_replace(
-        regexp_replace(__COL__, '\\p{Z}', ' '),
+      regexp_replace(__COL__,
         'http\\S+|www\\S+|pic\\.twitter\\.com\\S+', ''),
       '@([A-Za-z0-9_]{1,15})', ' '),
     '#[\\p{L}\\p{N}_]+', ' '),
@@ -90,7 +86,7 @@ if a_iguais < a_total:
 # COMMAND ----------
 
 # MAGIC %md ## 3. Preencher `silver.postagem.texto_limpo`
-# MAGIC Mesma expressao. Recalcula todas as linhas (coluna derivada; a fonte `texto` nao muda).
+# MAGIC Mesma expressao. So preenche onde esta nulo; nao sobrescreve.
 
 # COMMAND ----------
 
@@ -100,6 +96,7 @@ display(antes)
 spark.sql(f"""
   UPDATE silver.postagem
      SET texto_limpo = {limpeza("texto")}
+   WHERE texto_limpo IS NULL
 """)
 
 depois = spark.sql("SELECT caso_slug, count(*) AS postagens, count(texto_limpo) AS com_texto_limpo FROM silver.postagem GROUP BY caso_slug")
@@ -115,10 +112,8 @@ teste_b = spark.sql("""
   SELECT o.id, o.case, p.caso_slug,
          o.text, p.texto,
          o.clean_text, p.texto_limpo,
-         trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', '')) AS clean_text_sem_marcador,
-         (o.clean_text RLIKE '^\\\\[IRONY\\\\]')  AS oraculo_tem_marcador,
          (p.texto <=> o.text)              AS texto_igual,
-         (p.texto_limpo <=> trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', ''))) AS texto_limpo_igual
+         (p.texto_limpo <=> o.clean_text)  AS texto_limpo_igual
   FROM oraculo o
   LEFT JOIN silver.postagem p
          ON p.plataforma = 'x' AND p.id_nativo = CAST(o.id AS STRING)
@@ -130,8 +125,7 @@ resumo_b = spark.sql("""
          count(*)                                       AS pares_oraculo,
          sum(CASE WHEN caso_slug IS NOT NULL THEN 1 ELSE 0 END) AS encontrados_na_silver,
          sum(CASE WHEN texto_igual THEN 1 ELSE 0 END)           AS texto_original_igual,
-         sum(CASE WHEN oraculo_tem_marcador THEN 1 ELSE 0 END)  AS oraculo_com_marcador_irony,
-         sum(CASE WHEN texto_limpo_igual THEN 1 ELSE 0 END)     AS texto_limpo_igual_sem_marcador
+         sum(CASE WHEN texto_limpo_igual THEN 1 ELSE 0 END)     AS texto_limpo_igual
   FROM teste_b
   GROUP BY coalesce(caso_slug, '(nao esta na Silver)')
   ORDER BY 1
@@ -139,7 +133,7 @@ resumo_b = spark.sql("""
 display(resumo_b)
 
 divergentes_b = spark.sql("""
-  SELECT id, caso_slug, clean_text_sem_marcador, texto_limpo
+  SELECT id, caso_slug, text, texto, clean_text, texto_limpo
   FROM teste_b
   WHERE caso_slug IS NOT NULL AND NOT texto_limpo_igual
 """)
@@ -167,11 +161,9 @@ spark.sql(f"""
          CAST(100.0 * sum(CASE WHEN texto_limpo_igual THEN 1 ELSE 0 END) / count(*) AS DOUBLE),
          'bloqueia',
          sum(CASE WHEN texto_limpo_igual THEN 0 ELSE 1 END) = 0,
-         concat('pares do oraculo na Silver: ', count(*),
-                '; texto_limpo identico a clean_text (sem o marcador [IRONY] do gabarito) em ',
-                sum(CASE WHEN texto_limpo_igual THEN 1 ELSE 0 END),
-                '; pares com marcador [IRONY] no gabarito: ',
-                sum(CASE WHEN oraculo_tem_marcador THEN 1 ELSE 0 END)),
+         concat('pares do oraculo encontrados na Silver: ', count(*),
+                '; texto_limpo identico a clean_text em ',
+                sum(CASE WHEN texto_limpo_igual THEN 1 ELSE 0 END)),
          '{VERSAO}',
          current_timestamp()
   FROM teste_b
@@ -185,3 +177,49 @@ display(spark.sql(f"""
   WHERE indicador = 'qc_texto_limpo_reproduz_oraculo' AND versao_pipeline = '{VERSAO}'
 """))
 display(spark.sql("SELECT * FROM silver.v_qc_portao ORDER BY caso_slug"))
+
+# COMMAND ----------
+
+# 1. As 22 divergencias sao todas [IRONY]? Sem o marcador, ficam iguais?
+display(spark.sql("""
+  SELECT id,
+         clean_text RLIKE '^\\\\[IRONY\\\\]' AS oraculo_tem_marcador,
+         trim(regexp_replace(clean_text, '^\\\\[IRONY\\\\]\\\\s*', '')) <=> texto_limpo AS igual_sem_marcador,
+         clean_text, texto_limpo
+  FROM teste_b
+  WHERE caso_slug IS NOT NULL AND NOT texto_limpo_igual
+"""))
+
+# COMMAND ----------
+
+# 2. Quantos pares do gabarito inteiro carregam o marcador, e de quais casos vem o gabarito
+display(spark.sql("SELECT arquivo, count(*) AS n, sum(CASE WHEN text LIKE '[IRONY]%' THEN 1 ELSE 0 END) AS com_irony FROM oraculo GROUP BY arquivo"))
+display(spark.sql("SELECT case, count(*) AS n FROM oraculo GROUP BY case ORDER BY n DESC"))
+
+# COMMAND ----------
+
+# 3. Em que o text do gabarito difere do tweet cru (5 exemplos onde o limpo bate mas o cru nao)
+display(spark.sql("""
+  SELECT id, text AS gabarito_text, texto AS silver_texto
+  FROM teste_b
+  WHERE caso_slug IS NOT NULL AND NOT texto_igual AND texto_limpo_igual
+  LIMIT 5
+"""))
+
+# COMMAND ----------
+
+row = spark.sql("""
+  SELECT id, clean_text, texto_limpo, text, texto
+  FROM teste_b
+  WHERE caso_slug IS NOT NULL AND NOT texto_limpo_igual
+    AND NOT (clean_text RLIKE '^\\\\[IRONY\\\\]')
+""").collect()[0]
+
+print("id:", row.id)
+print("len gabarito:", len(row.clean_text), " len silver:", len(row.texto_limpo))
+print("gabarito:", repr(row.clean_text))
+print("silver:  ", repr(row.texto_limpo))
+for i, (a, b) in enumerate(zip(row.clean_text, row.texto_limpo)):
+    if a != b:
+        print(f"primeira diferenca na posicao {i}: gabarito={a!r} (U+{ord(a):04X})  silver={b!r} (U+{ord(b):04X})")
+        break
