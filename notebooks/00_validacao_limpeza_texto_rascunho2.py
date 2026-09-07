@@ -26,18 +26,17 @@ ARQUIVOS = ["merged_train.jsonl", "merged_val.jsonl", "merged_test.jsonl"]
 
 # A regra canonica (claude/especificacao-limpeza-texto.md), como expressao SQL.
 # __COL__ e substituido pelo nome da coluna de entrada.
-# Passo 0: \p{Z} troca espacos Unicode (U+00A0 nao separavel etc.) por espaco comum,
-# reproduzindo o \s do Python, que e Unicode; o \s do Java e ASCII.
+# (?U) = UNICODE_CHARACTER_CLASS do Java: faz \s e \S reconhecerem o espaco
+# nao separavel (U+00A0) e outros espacos Unicode, como o \s do Python.
 LIMPEZA_SQL = r"""
 trim(regexp_replace(
   regexp_replace(
     regexp_replace(
-      regexp_replace(
-        regexp_replace(__COL__, '\\p{Z}', ' '),
-        'http\\S+|www\\S+|pic\\.twitter\\.com\\S+', ''),
+      regexp_replace(__COL__,
+        '(?U)http\\S+|www\\S+|pic\\.twitter\\.com\\S+', ''),
       '@([A-Za-z0-9_]{1,15})', ' '),
     '#[\\p{L}\\p{N}_]+', ' '),
-  '\\s+', ' '))
+  '(?U)\\s+', ' '))
 """
 
 def limpeza(coluna):
@@ -115,10 +114,10 @@ teste_b = spark.sql("""
   SELECT o.id, o.case, p.caso_slug,
          o.text, p.texto,
          o.clean_text, p.texto_limpo,
-         trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', '')) AS clean_text_sem_marcador,
-         (o.clean_text RLIKE '^\\\\[IRONY\\\\]')  AS oraculo_tem_marcador,
+         trim(regexp_replace(o.clean_text, '^\\[IRONY\\]\\s*', '')) AS clean_text_sem_marcador,
+         (o.clean_text RLIKE '^\\[IRONY\\]')  AS oraculo_tem_marcador,
          (p.texto <=> o.text)              AS texto_igual,
-         (p.texto_limpo <=> trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', ''))) AS texto_limpo_igual
+         (p.texto_limpo <=> trim(regexp_replace(o.clean_text, '^\\[IRONY\\]\\s*', ''))) AS texto_limpo_igual
   FROM oraculo o
   LEFT JOIN silver.postagem p
          ON p.plataforma = 'x' AND p.id_nativo = CAST(o.id AS STRING)

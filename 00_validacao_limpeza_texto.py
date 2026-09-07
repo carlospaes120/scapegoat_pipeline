@@ -1,8 +1,4 @@
 # Databricks notebook source
-# /// script
-# [tool.databricks.environment]
-# environment_version = "5"
-# ///
 # MAGIC %md
 # MAGIC # Validacao da limpeza de texto (`texto_limpo`) contra o oraculo de 1.569 pares
 # MAGIC
@@ -115,10 +111,10 @@ teste_b = spark.sql("""
   SELECT o.id, o.case, p.caso_slug,
          o.text, p.texto,
          o.clean_text, p.texto_limpo,
-         trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', '')) AS clean_text_sem_marcador,
-         (o.clean_text RLIKE '^\\\\[IRONY\\\\]')  AS oraculo_tem_marcador,
+         trim(regexp_replace(o.clean_text, '^\\[IRONY\\]\\s*', '')) AS clean_text_sem_marcador,
+         (o.clean_text RLIKE '^\\[IRONY\\]')  AS oraculo_tem_marcador,
          (p.texto <=> o.text)              AS texto_igual,
-         (p.texto_limpo <=> trim(regexp_replace(o.clean_text, '^\\\\[IRONY\\\\]\\\\s*', ''))) AS texto_limpo_igual
+         (p.texto_limpo <=> trim(regexp_replace(o.clean_text, '^\\[IRONY\\]\\s*', ''))) AS texto_limpo_igual
   FROM oraculo o
   LEFT JOIN silver.postagem p
          ON p.plataforma = 'x' AND p.id_nativo = CAST(o.id AS STRING)
