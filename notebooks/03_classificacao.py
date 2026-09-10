@@ -217,3 +217,20 @@ display(spark.sql("SELECT * FROM silver.v_qc_portao ORDER BY caso_slug"))
 import collections
 print("previsto no teste :", collections.Counter(prev))
 print("verdade no teste  :", collections.Counter(verdade))
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC USE CATALOG scapegoat;
+# MAGIC USE SCHEMA silver;
+# MAGIC
+# MAGIC DROP TABLE IF EXISTS silver.captura_quarentena;
+# MAGIC
+# MAGIC SELECT 'conta' AS tabela, COUNT(*) AS linhas FROM silver.conta
+# MAGIC UNION ALL SELECT 'postagem', COUNT(*) FROM silver.postagem
+# MAGIC UNION ALL SELECT 'captura', COUNT(*) FROM silver.captura
+# MAGIC UNION ALL SELECT 'mencao', COUNT(*) FROM silver.mencao
+# MAGIC UNION ALL SELECT 'postagem_hashtag', COUNT(*) FROM silver.postagem_hashtag
+# MAGIC UNION ALL SELECT 'classificacao', COUNT(*) FROM silver.classificacao
+# MAGIC UNION ALL SELECT 'qc_resultado', COUNT(*) FROM silver.qc_resultado
+# MAGIC ORDER BY tabela;
