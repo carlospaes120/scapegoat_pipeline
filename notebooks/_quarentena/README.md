@@ -1,0 +1,1 @@
+Versões iterativas do Bloco 4 (P1–P4), substituídas por 05_analise. Mantidas por regra do projeto: mover, nunca apagar.

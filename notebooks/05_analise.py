@@ -267,6 +267,8 @@ display(fig)
 
 # COMMAND ----------
 
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -392,6 +394,8 @@ print("figura gravada em", caminho)
 display(fig)
 
 # COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -522,6 +526,8 @@ print("figura gravada em", caminho)
 display(fig)
 
 # COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -675,6 +681,8 @@ display(fig)
 
 # COMMAND ----------
 
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -827,133 +835,7 @@ display(fig)
 
 # COMMAND ----------
 
-# COMMAND ----------
 
-# MAGIC %md
-# MAGIC ## P6 — O pico de concentração coincide com o pico de volume, ou um antecede o outro?
-# MAGIC
-# MAGIC Fontes: `gold.fato_rede` × `gold.calendario_caso`, só dias com ≥ 30 nós. Duas janelas: todos os dias válidos e a partir do estopim
-# MAGIC (a pré-crise do Arthur é outra polêmica, e o máximo global de volume dela — 28/02 — não é o pico do caso).
-# MAGIC Medidas: dia do pico de volume, de menções ao alvo, de `isolamento_alvo`, centralização, HHI e Gini; defasagens em dias; correlação volume × concentração.
-# MAGIC Validação: 18 + 7 dias válidos; pico de volume a partir do estopim = dia 1 nos dois casos (P2).
-
-# COMMAND ----------
-
-# setup automático se a sessão reiniciou (SAIDA, cores, eixo_limpo vêm da célula 2)
-if "SAIDA" not in globals():
-    dbutils.notebook.exit("Sessão reiniciada: rode a célula 2 (setup) e depois esta seção — ou Run all.")
-
-p6 = spark.sql("""
-  WITH s AS (
-    SELECT r.caso, r.data, r.dias_desde_estopim, r.fase, r.n_nos, c.volume_postagens,
-           r.gini_mencoes_recebidas AS gini, r.hhi_mencoes_recebidas AS hhi,
-           r.centralizacao_grau_entrada AS centralizacao, r.isolamento_alvo,
-           r.n_mencoes * r.isolamento_alvo AS mencoes_ao_alvo
-    FROM scapegoat.gold.fato_rede r
-    JOIN scapegoat.gold.calendario_caso c ON c.caso = r.caso AND c.data = r.data
-    WHERE r.n_nos >= 30
-  )
-  SELECT *, volume_postagens / MAX(CASE WHEN dias_desde_estopim >= 0 THEN volume_postagens END) OVER (PARTITION BY caso) AS fracao_do_pico
-  FROM s ORDER BY caso, data
-""").toPandas()
-assert p6.groupby("caso").size().to_dict() == {"arthur_do_val": 18, "monark": 7}, "esperava 18 + 7 dias válidos"
-assert (p6[p6.fracao_do_pico == 1.0].dias_desde_estopim == 1).all(), "pico de volume a partir do estopim deve ser o dia 1"
-print("P6 validada:", p6.groupby("caso").size().to_dict())
-
-# COMMAND ----------
-
-p6_resumo = spark.sql("""
-  WITH s AS (
-    SELECT r.caso, r.dias_desde_estopim, c.volume_postagens,
-           r.gini_mencoes_recebidas AS gini, r.hhi_mencoes_recebidas AS hhi,
-           r.centralizacao_grau_entrada AS centralizacao, r.isolamento_alvo,
-           r.n_mencoes * r.isolamento_alvo AS mencoes_ao_alvo
-    FROM scapegoat.gold.fato_rede r
-    JOIN scapegoat.gold.calendario_caso c ON c.caso = r.caso AND c.data = r.data
-    WHERE r.n_nos >= 30
-  ),
-  janelas AS (
-    SELECT 'todos os dias validos' AS janela, * FROM s
-    UNION ALL
-    SELECT 'a partir do estopim'   AS janela, * FROM s WHERE dias_desde_estopim >= 0
-  )
-  SELECT caso, janela,
-         MAX_BY(dias_desde_estopim, volume_postagens) AS pico_volume,
-         MAX_BY(dias_desde_estopim, mencoes_ao_alvo)  AS pico_mencoes_alvo,
-         MAX_BY(dias_desde_estopim, isolamento_alvo)  AS pico_isolamento,
-         MAX_BY(dias_desde_estopim, centralizacao)    AS pico_centralizacao,
-         MAX_BY(dias_desde_estopim, hhi)              AS pico_hhi,
-         MAX_BY(dias_desde_estopim, gini)             AS pico_gini,
-         MAX_BY(dias_desde_estopim, centralizacao)   - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_centralizacao,
-         MAX_BY(dias_desde_estopim, isolamento_alvo) - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_isolamento,
-         MAX_BY(dias_desde_estopim, mencoes_ao_alvo) - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_mencoes_alvo,
-         ROUND(CORR(volume_postagens, centralizacao), 2)   AS corr_volume_centralizacao,
-         ROUND(CORR(volume_postagens, isolamento_alvo), 2) AS corr_volume_isolamento,
-         COUNT(*) AS dias
-  FROM janelas GROUP BY caso, janela ORDER BY caso, janela
-""")
-p6r = p6_resumo.toPandas()
-assert (p6r[p6r.janela == "a partir do estopim"].pico_volume == 1).all()
-display(p6_resumo)
-p6r.to_csv(f"{SAIDA}/p6_resumo.csv", index=False)
-
-# COMMAND ----------
-
-# figura P6 — volume (fração do pico) × centralização × isolamento do alvo, por dia
-import matplotlib.colors as mcolors
-def clarear(hexcor, f=0.6):
-    r, g, b = mcolors.to_rgb(hexcor); return (r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f)
-
-fig, axes = plt.subplots(1, 2, figsize=(10, 4.6), dpi=200, sharey=True, gridspec_kw=dict(width_ratios=[18, 8], wspace=0.08))
-fig.patch.set_facecolor(SURF)
-handles = {}
-for ax, caso in zip(axes, ["arthur_do_val", "monark"]):
-    eixo_limpo(ax)
-    d = p6[p6.caso == caso].sort_values("dias_desde_estopim")
-    hb = ax.bar(d.dias_desde_estopim, d.fracao_do_pico, width=0.7, color=clarear(COR[caso]), zorder=2)
-    handles["volume (fração do pico a partir do estopim)"] = hb
-    (h1,) = ax.plot(d.dias_desde_estopim, d.centralizacao, color="#4a3aa7", lw=1.9, marker="o", ms=3.5, zorder=4)
-    (h2,) = ax.plot(d.dias_desde_estopim, d.isolamento_alvo, color=INK, lw=2.0, marker="o", ms=3.5, zorder=4)
-    handles["centralização (grau de entrada)"] = h1; handles["parcela das menções no alvo"] = h2
-    # marcadores de pico
-    pv = d[d.dias_desde_estopim >= 0].sort_values("volume_postagens").iloc[-1]
-    pc = d[d.dias_desde_estopim >= 0].sort_values("centralizacao").iloc[-1]
-    ax.plot([pv.dias_desde_estopim], [0.985], marker="v", ms=6, color=clarear(COR[caso], 0.2), clip_on=False,
-            transform=ax.get_xaxis_transform(), ls="none", zorder=5)
-    ax.plot([pc.dias_desde_estopim], [0.985], marker="v", ms=6, color="#4a3aa7", clip_on=False,
-            transform=ax.get_xaxis_transform(), ls="none", zorder=5)
-    ax.axvline(0, color=AXIS, lw=0.8, ls=(0, (3, 3)), zorder=1)
-    ax.set_xticks(d.dias_desde_estopim)
-    ax.set_xlim(d.dias_desde_estopim.min() - 0.6, d.dias_desde_estopim.max() + 0.6)
-    ax.set_title(NOME[caso], loc="left", fontsize=10, color=INK, pad=22)
-    ax.set_xlabel("dias desde o estopim", color=INK2, fontsize=9)
-
-ra = p6r[(p6r.caso == "arthur_do_val") & (p6r.janela == "a partir do estopim")].iloc[0]
-rm = p6r[(p6r.caso == "monark") & (p6r.janela == "a partir do estopim")].iloc[0]
-axes[0].text(0.02, 0.985, f"a partir do estopim: pico de volume dia {ra.pico_volume}, de centralização dia {ra.pico_centralizacao} "
-             f"(+{ra.defasagem_centralizacao}); correlação volume × centralização {ra.corr_volume_centralizacao:.2f}".replace(".", ","),
-             transform=axes[0].transAxes, fontsize=7.6, color=INK2, va="top")
-axes[0].text(0.02, 0.935, "janela inteira: todos os picos de concentração ficam em −3/−4 (polêmica anterior)",
-             transform=axes[0].transAxes, fontsize=7.6, color=INK2, va="top")
-axes[1].text(0.03, 0.985, f"pico de volume dia {rm.pico_volume};\ncentralização e isolamento dia {rm.pico_centralizacao} (+{rm.defasagem_centralizacao});\n"
-             f"correlação volume × centralização {rm.corr_volume_centralizacao:.2f}".replace(".", ","),
-             transform=axes[1].transAxes, fontsize=7.6, color=INK2, va="top")
-
-fig.legend(handles.values(), handles.keys(), loc="upper right", bbox_to_anchor=(0.99, 0.93), ncol=3, frameon=False,
-           fontsize=8, labelcolor=INK2, handlelength=1.6, columnspacing=1.2)
-axes[0].set_ylim(0, 1.85)
-axes[0].set_yticks([0, .25, .5, .75, 1.0, 1.25, 1.5]); axes[0].set_yticklabels(["0", "0,25", "0,50", "0,75", "1,00", "1,25", "1,50"])
-axes[0].set_ylabel("fração do pico (volume) · índice 0–1 (concentração)", color=INK2, fontsize=9)
-fig.suptitle("P6 · Pico de volume × pico de concentração: quem vem primeiro", x=0.02, y=0.985, ha="left", fontsize=11, color=INK)
-fig.text(0.02, 0.925, "▼ pico de volume (cor do caso) e pico de centralização (roxo), a partir do estopim · só dias com ≥ 30 nós · fonte: gold.fato_rede, gold.calendario_caso",
-         fontsize=7.5, color=MUTED)
-fig.subplots_adjust(left=0.08, right=0.98, top=0.78, bottom=0.13, wspace=0.08)
-caminho = f"{SAIDA}/p6_defasagem.png"
-fig.savefig(caminho, facecolor=SURF)
-print("figura gravada em", caminho)
-display(fig)
-
-# COMMAND ----------
 
 # COMMAND ----------
 
@@ -1082,6 +964,138 @@ print("figura gravada em", caminho)
 display(fig)
 
 # COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## P6 — O pico de concentração coincide com o pico de volume, ou um antecede o outro?
+# MAGIC
+# MAGIC Fontes: `gold.fato_rede` × `gold.calendario_caso`, só dias com ≥ 30 nós. Duas janelas: todos os dias válidos e a partir do estopim
+# MAGIC (a pré-crise do Arthur é outra polêmica, e o máximo global de volume dela — 28/02 — não é o pico do caso).
+# MAGIC Medidas: dia do pico de volume, de menções ao alvo, de `isolamento_alvo`, centralização, HHI e Gini; defasagens em dias; correlação volume × concentração.
+# MAGIC Validação: 18 + 7 dias válidos; pico de volume a partir do estopim = dia 1 nos dois casos (P2).
+
+# COMMAND ----------
+
+# setup automático se a sessão reiniciou (SAIDA, cores, eixo_limpo vêm da célula 2)
+if "SAIDA" not in globals():
+    dbutils.notebook.exit("Sessão reiniciada: rode a célula 2 (setup) e depois esta seção — ou Run all.")
+
+p6 = spark.sql("""
+  WITH s AS (
+    SELECT r.caso, r.data, r.dias_desde_estopim, r.fase, r.n_nos, c.volume_postagens,
+           r.gini_mencoes_recebidas AS gini, r.hhi_mencoes_recebidas AS hhi,
+           r.centralizacao_grau_entrada AS centralizacao, r.isolamento_alvo,
+           r.n_mencoes * r.isolamento_alvo AS mencoes_ao_alvo
+    FROM scapegoat.gold.fato_rede r
+    JOIN scapegoat.gold.calendario_caso c ON c.caso = r.caso AND c.data = r.data
+    WHERE r.n_nos >= 30
+  )
+  SELECT *, volume_postagens / MAX(CASE WHEN dias_desde_estopim >= 0 THEN volume_postagens END) OVER (PARTITION BY caso) AS fracao_do_pico
+  FROM s ORDER BY caso, data
+""").toPandas()
+assert p6.groupby("caso").size().to_dict() == {"arthur_do_val": 18, "monark": 7}, "esperava 18 + 7 dias válidos"
+assert (p6[p6.fracao_do_pico == 1.0].dias_desde_estopim == 1).all(), "pico de volume a partir do estopim deve ser o dia 1"
+print("P6 validada:", p6.groupby("caso").size().to_dict())
+
+# COMMAND ----------
+
+p6_resumo = spark.sql("""
+  WITH s AS (
+    SELECT r.caso, r.dias_desde_estopim, c.volume_postagens,
+           r.gini_mencoes_recebidas AS gini, r.hhi_mencoes_recebidas AS hhi,
+           r.centralizacao_grau_entrada AS centralizacao, r.isolamento_alvo,
+           r.n_mencoes * r.isolamento_alvo AS mencoes_ao_alvo
+    FROM scapegoat.gold.fato_rede r
+    JOIN scapegoat.gold.calendario_caso c ON c.caso = r.caso AND c.data = r.data
+    WHERE r.n_nos >= 30
+  ),
+  janelas AS (
+    SELECT 'todos os dias validos' AS janela, * FROM s
+    UNION ALL
+    SELECT 'a partir do estopim'   AS janela, * FROM s WHERE dias_desde_estopim >= 0
+  )
+  SELECT caso, janela,
+         MAX_BY(dias_desde_estopim, volume_postagens) AS pico_volume,
+         MAX_BY(dias_desde_estopim, mencoes_ao_alvo)  AS pico_mencoes_alvo,
+         MAX_BY(dias_desde_estopim, isolamento_alvo)  AS pico_isolamento,
+         MAX_BY(dias_desde_estopim, centralizacao)    AS pico_centralizacao,
+         MAX_BY(dias_desde_estopim, hhi)              AS pico_hhi,
+         MAX_BY(dias_desde_estopim, gini)             AS pico_gini,
+         MAX_BY(dias_desde_estopim, centralizacao)   - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_centralizacao,
+         MAX_BY(dias_desde_estopim, isolamento_alvo) - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_isolamento,
+         MAX_BY(dias_desde_estopim, mencoes_ao_alvo) - MAX_BY(dias_desde_estopim, volume_postagens) AS defasagem_mencoes_alvo,
+         ROUND(CORR(volume_postagens, centralizacao), 2)   AS corr_volume_centralizacao,
+         ROUND(CORR(volume_postagens, isolamento_alvo), 2) AS corr_volume_isolamento,
+         COUNT(*) AS dias
+  FROM janelas GROUP BY caso, janela ORDER BY caso, janela
+""")
+p6r = p6_resumo.toPandas()
+assert (p6r[p6r.janela == "a partir do estopim"].pico_volume == 1).all()
+display(p6_resumo)
+p6r.to_csv(f"{SAIDA}/p6_resumo.csv", index=False)
+
+# COMMAND ----------
+
+# figura P6 — volume (fração do pico) × centralização × isolamento do alvo, por dia
+import matplotlib.colors as mcolors
+def clarear(hexcor, f=0.6):
+    r, g, b = mcolors.to_rgb(hexcor); return (r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4.6), dpi=200, sharey=True, gridspec_kw=dict(width_ratios=[18, 8], wspace=0.08))
+fig.patch.set_facecolor(SURF)
+handles = {}
+for ax, caso in zip(axes, ["arthur_do_val", "monark"]):
+    eixo_limpo(ax)
+    d = p6[p6.caso == caso].sort_values("dias_desde_estopim")
+    hb = ax.bar(d.dias_desde_estopim, d.fracao_do_pico, width=0.7, color=clarear(COR[caso]), zorder=2)
+    handles["volume (fração do pico a partir do estopim)"] = hb
+    (h1,) = ax.plot(d.dias_desde_estopim, d.centralizacao, color="#4a3aa7", lw=1.9, marker="o", ms=3.5, zorder=4)
+    (h2,) = ax.plot(d.dias_desde_estopim, d.isolamento_alvo, color=INK, lw=2.0, marker="o", ms=3.5, zorder=4)
+    handles["centralização (grau de entrada)"] = h1; handles["parcela das menções no alvo"] = h2
+    # marcadores de pico
+    pv = d[d.dias_desde_estopim >= 0].sort_values("volume_postagens").iloc[-1]
+    pc = d[d.dias_desde_estopim >= 0].sort_values("centralizacao").iloc[-1]
+    ax.plot([pv.dias_desde_estopim], [0.985], marker="v", ms=6, color=clarear(COR[caso], 0.2), clip_on=False,
+            transform=ax.get_xaxis_transform(), ls="none", zorder=5)
+    ax.plot([pc.dias_desde_estopim], [0.985], marker="v", ms=6, color="#4a3aa7", clip_on=False,
+            transform=ax.get_xaxis_transform(), ls="none", zorder=5)
+    ax.axvline(0, color=AXIS, lw=0.8, ls=(0, (3, 3)), zorder=1)
+    ax.set_xticks(d.dias_desde_estopim)
+    ax.set_xlim(d.dias_desde_estopim.min() - 0.6, d.dias_desde_estopim.max() + 0.6)
+    ax.set_title(NOME[caso], loc="left", fontsize=10, color=INK, pad=22)
+    ax.set_xlabel("dias desde o estopim", color=INK2, fontsize=9)
+
+ra = p6r[(p6r.caso == "arthur_do_val") & (p6r.janela == "a partir do estopim")].iloc[0]
+rm = p6r[(p6r.caso == "monark") & (p6r.janela == "a partir do estopim")].iloc[0]
+axes[0].text(0.02, 0.985, f"a partir do estopim: pico de volume dia {ra.pico_volume}, de centralização dia {ra.pico_centralizacao} "
+             f"(+{ra.defasagem_centralizacao}); correlação volume × centralização {ra.corr_volume_centralizacao:.2f}".replace(".", ","),
+             transform=axes[0].transAxes, fontsize=7.6, color=INK2, va="top")
+axes[0].text(0.02, 0.935, "janela inteira: todos os picos de concentração ficam em −3/−4 (polêmica anterior)",
+             transform=axes[0].transAxes, fontsize=7.6, color=INK2, va="top")
+axes[1].text(0.03, 0.985, f"pico de volume dia {rm.pico_volume};\ncentralização e isolamento dia {rm.pico_centralizacao} (+{rm.defasagem_centralizacao});\n"
+             f"correlação volume × centralização {rm.corr_volume_centralizacao:.2f}".replace(".", ","),
+             transform=axes[1].transAxes, fontsize=7.6, color=INK2, va="top")
+
+fig.legend(handles.values(), handles.keys(), loc="upper right", bbox_to_anchor=(0.99, 0.93), ncol=3, frameon=False,
+           fontsize=8, labelcolor=INK2, handlelength=1.6, columnspacing=1.2)
+axes[0].set_ylim(0, 1.85)
+axes[0].set_yticks([0, .25, .5, .75, 1.0, 1.25, 1.5]); axes[0].set_yticklabels(["0", "0,25", "0,50", "0,75", "1,00", "1,25", "1,50"])
+axes[0].set_ylabel("fração do pico (volume) · índice 0–1 (concentração)", color=INK2, fontsize=9)
+fig.suptitle("P6 · Pico de volume × pico de concentração: quem vem primeiro", x=0.02, y=0.985, ha="left", fontsize=11, color=INK)
+fig.text(0.02, 0.925, "▼ pico de volume (cor do caso) e pico de centralização (roxo), a partir do estopim · só dias com ≥ 30 nós · fonte: gold.fato_rede, gold.calendario_caso",
+         fontsize=7.5, color=MUTED)
+fig.subplots_adjust(left=0.08, right=0.98, top=0.78, bottom=0.13, wspace=0.08)
+caminho = f"{SAIDA}/p6_defasagem.png"
+fig.savefig(caminho, facecolor=SURF)
+print("figura gravada em", caminho)
+display(fig)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -1275,6 +1289,8 @@ display(fig)
 
 # COMMAND ----------
 
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -1437,6 +1453,8 @@ display(fig)
 
 # COMMAND ----------
 
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -1596,6 +1614,8 @@ print("figura gravada em", caminho)
 display(fig)
 
 # COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -1816,6 +1836,8 @@ display(fig)
 
 # COMMAND ----------
 
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -2020,6 +2042,8 @@ print("figura gravada em", caminho)
 display(fig)
 
 # COMMAND ----------
+
+
 
 # COMMAND ----------
 
