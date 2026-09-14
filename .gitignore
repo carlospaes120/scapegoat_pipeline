@@ -61,3 +61,5 @@ Thumbs.db
 *.swp
 
 Claude outputs/
+!evidencias/bloco4/grafos/*.gexf
+
