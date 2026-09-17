@@ -356,6 +356,14 @@ Os dados brutos **não estão neste repositório**, por decisão de projeto e co
 
 **Evidências desta seção.** `evidencias/linhagem_bronze_arquivo.png` — as 19 linhas de `bronze.arquivo`, com fonte, formato, tamanho, hash, período e instante de ingestão de cada arquivo; `evidencias/carga_contagem_por_caso.png` — arquivos, registros, volume em MB, consultas distintas e período coberto, por caso e fonte; `evidencias/carga_idempotencia.png` — a célula de ingestão pulando os arquivos já ingeridos por hash; `evidencias/carga_veredito_oraculo.png` — a conferência de contagens contra `tests/valores_esperados_qc.md`, com veredito `OK` nos dois casos.
 
+![linhagem_bronze_arquivo.png](evidencias/linhagem_bronze_arquivo.png)
+
+![carga_contagem_por_caso.png](evidencias/carga_contagem_por_caso.png)
+
+![carga_idempotencia.png](evidencias/carga_idempotencia.png)
+
+![carga_veredito_oraculo.png](evidencias/carga_veredito_oraculo.png)
+
 ## 3. Modelagem e Catálogo de Dados
 
 ### 3.1 Arquitetura medalhão
@@ -717,6 +725,26 @@ Em 13/09/2026 o catálogo `scapegoat` tinha **24 objetos** — 2 na Bronze, 11 n
 
 **Evidências desta seção.** `evidencias/modelagem_pk_fk.png` — chave primária e estrangeira da Bronze em `information_schema.table_constraints`; `evidencias/modelagem_checks.png` — as seis restrições `CHECK` da Bronze lidas de `SHOW TBLPROPERTIES` (`delta.constraints.*`), já que o `information_schema` não as lista; `evidencias/bloco3/04_dim_conta_papel_alvos.png` — um `alvo` por caso, com zero postagens e 1.335 / 9.132 menções recebidas; `evidencias/bloco3/11_pub_pseudonimo_injetivo.png` — 16.399 contas distintas → 16.399 pseudônimos distintos, 16.932 linhas caso × conta; `evidencias/bloco3/12_catalogo_colunas_information_schema.png` — comentários de coluna gravados no Unity Catalog, esquema `gold`; `evidencias/bloco3/13_catalogo_tabelas_gold_pub.png` — comentários de tabela e view em `gold` e `pub`; `evidencias/bloco5/inventario_catalogo_final.png` — os 24 objetos do catálogo, todos com `COMMENT`; `evidencias/bloco5/catalogo_v_grafo_nos_colunas.png` — as oito colunas comentadas da view `pub.v_grafo_nos`; `evidencias/bloco5/catalogo_dominios_numericos.png` e `catalogo_dominios_numericos_2.png` — a consulta de mínimo e máximo por coluna das sete tabelas Gold, rodada em 15/09, em dois recortes.
 
+![modelagem_pk_fk.png](evidencias/modelagem_pk_fk.png)
+
+![modelagem_checks.png](evidencias/modelagem_checks.png)
+
+![04_dim_conta_papel_alvos.png](evidencias/bloco3/04_dim_conta_papel_alvos.png)
+
+![11_pub_pseudonimo_injetivo.png](evidencias/bloco3/11_pub_pseudonimo_injetivo.png)
+
+![12_catalogo_colunas_information_schema.png](evidencias/bloco3/12_catalogo_colunas_information_schema.png)
+
+![13_catalogo_tabelas_gold_pub.png](evidencias/bloco3/13_catalogo_tabelas_gold_pub.png)
+
+![inventario_catalogo_final.png](evidencias/bloco5/inventario_catalogo_final.png)
+
+![catalogo_v_grafo_nos_colunas.png](evidencias/bloco5/catalogo_v_grafo_nos_colunas.png)
+
+![catalogo_dominios_numericos.png](evidencias/bloco5/catalogo_dominios_numericos.png)
+
+![catalogo_dominios_numericos_2.png](evidencias/bloco5/catalogo_dominios_numericos_2.png)
+
 ## 4. Pipeline de Dados
 
 ### 4.1 Organização
@@ -772,6 +800,54 @@ O pipeline executa de ponta a ponta pelo job `scapegoat_pipeline`, definido no D
 
 **Evidências desta seção.** `evidencias/05_silver_contagens_por_caso.png` — postagens, capturas, menções e pares postagem-hashtag por caso após a promoção; `evidencias/06_silver_retrato_final.png` — contagem de linhas das sete tabelas da Silver em 06/09; `evidencias/06_texto_limpo_teste_a_1569.png` e `06_texto_limpo_teste_b_600.png` — a regra de limpeza reproduzindo o gabarito em memória (1.569 de 1.569) e sobre a coluna materializada (600 de 600, zero divergências); `evidencias/bertimbau_carregado.png` — o modelo base carregado dentro da plataforma (109 milhões de parâmetros); `evidencias/bertimbau_metricas_reproduzidas.png` e `06_classificador_acuracia_teste.png` — a prova de identidade do checkpoint contra o card publicado; `evidencias/06_classificacao_distribuicao_por_caso.png` — distribuição dos rótulos e confiança média por caso, ao lado da distribuição do gabarito anotado; `evidencias/bloco3/01_calendario_caso_carga_inicial.png` e `03_calendario_caso_por_fase_corrigida.png` — a carga do calendário antes e depois da regra de pico a partir do estopim; `evidencias/bloco3/05_fato_atividade_por_fase_stance.png`, `06_fato_rede_carga_26_linhas.png`, `08_fato_rede_totais_vs_silver.png`, `09_grafo_arestas_soma_pesos_pares.png` e `10_grafo_arestas_alvo_nunca_origem.png` — as conferências de carga da Gold contra a Silver; `evidencias/bloco5/backup_clones_contagem.png` — as catorze tabelas clonadas para `scapegoat.backup`, com contagem origem × clone igual em todas; `evidencias/bloco5/regua_antes.png` — a régua de 75 medidas antes de qualquer alteração de código; `evidencias/bloco5/v_promovivel_texto_limpo_zero_div.png` — a view regravada: linhas iguais às postagens, zero postagens fora, zero divergências de `texto_limpo` contra a coluna gravada; `evidencias/bloco5/job_pipeline.png` — o job `scapegoat_pipeline` com as dez tarefas em cadeia; `evidencias/bloco5/job_run_monark_succeeded.png` e `job_run_arthur_succeeded.png` — a tela Runs de cada execução, a do Monark com os dois reparos e a do Arthur do Val na primeira tentativa; `evidencias/bloco5/classificacao_reexecucao_zero_pendentes.png` — o classificador encontrando zero postagens sem rótulo na reexecução; `evidencias/bloco5/regua_depois_arthur.png` — a régua depois da segunda execução, idêntica à de antes exceto nas chaves de versão; a coluna intermediária, depois do Monark, está registrada em `tests/regua_reexecucao.md`; `evidencias/bloco5/analise_reexecucao_csv_identicos.png` — a conferência por SHA-256, 35 de 35 arquivos idênticos. A régua completa, com as três colunas, está em `tests/regua_reexecucao.md`; a consulta, em `tests/regua_reexecucao.sql`.
 
+![05_silver_contagens_por_caso.png](evidencias/05_silver_contagens_por_caso.png)
+
+![06_silver_retrato_final.png](evidencias/06_silver_retrato_final.png)
+
+![06_texto_limpo_teste_a_1569.png](evidencias/06_texto_limpo_teste_a_1569.png)
+
+![06_texto_limpo_teste_b_600.png](evidencias/06_texto_limpo_teste_b_600.png)
+
+![bertimbau_carregado.png](evidencias/bertimbau_carregado.png)
+
+![bertimbau_metricas_reproduzidas.png](evidencias/bertimbau_metricas_reproduzidas.png)
+
+![06_classificador_acuracia_teste.png](evidencias/06_classificador_acuracia_teste.png)
+
+![06_classificacao_distribuicao_por_caso.png](evidencias/06_classificacao_distribuicao_por_caso.png)
+
+![01_calendario_caso_carga_inicial.png](evidencias/bloco3/01_calendario_caso_carga_inicial.png)
+
+![03_calendario_caso_por_fase_corrigida.png](evidencias/bloco3/03_calendario_caso_por_fase_corrigida.png)
+
+![05_fato_atividade_por_fase_stance.png](evidencias/bloco3/05_fato_atividade_por_fase_stance.png)
+
+![06_fato_rede_carga_26_linhas.png](evidencias/bloco3/06_fato_rede_carga_26_linhas.png)
+
+![08_fato_rede_totais_vs_silver.png](evidencias/bloco3/08_fato_rede_totais_vs_silver.png)
+
+![09_grafo_arestas_soma_pesos_pares.png](evidencias/bloco3/09_grafo_arestas_soma_pesos_pares.png)
+
+![10_grafo_arestas_alvo_nunca_origem.png](evidencias/bloco3/10_grafo_arestas_alvo_nunca_origem.png)
+
+![backup_clones_contagem.png](evidencias/bloco5/backup_clones_contagem.png)
+
+![regua_antes.png](evidencias/bloco5/regua_antes.png)
+
+![v_promovivel_texto_limpo_zero_div.png](evidencias/bloco5/v_promovivel_texto_limpo_zero_div.png)
+
+![job_pipeline.png](evidencias/bloco5/job_pipeline.png)
+
+![job_run_monark_succeeded.png](evidencias/bloco5/job_run_monark_succeeded.png)
+
+![job_run_arthur_succeeded.png](evidencias/bloco5/job_run_arthur_succeeded.png)
+
+![classificacao_reexecucao_zero_pendentes.png](evidencias/bloco5/classificacao_reexecucao_zero_pendentes.png)
+
+![regua_depois_arthur.png](evidencias/bloco5/regua_depois_arthur.png)
+
+![analise_reexecucao_csv_identicos.png](evidencias/bloco5/analise_reexecucao_csv_identicos.png)
+
 ## 5. Qualidade de Dados
 
 ### 5.0 O portão de promoção
@@ -808,6 +884,34 @@ A linhagem segue o vocabulário PROV visto na disciplina: as entidades são os a
 
 **Evidências desta seção.** `evidencias/QC_monark.png` e `evidencias/QC_Arthur_do_val.png` — os 21 indicadores do portão por caso, com valor, severidade, aprovação e regra; `evidencias/QC_portao.png` — `v_qc_portao` com zero bloqueios nos dois casos, dois alertas no Arthur do Val e `pode_promover = true`; `evidencias/06_qc_alertas_arthur_do_val.png` — os dois alertas do Arthur do Val (13 postagens sem autor; 90 com idioma inesperado); `evidencias/06_qc_classificacao_e_portao.png` — os indicadores pós-promoção sobre a classificação (cobertura 100 %, percentual de neutros, acurácia no teste) e o portão final; `evidencias/06_texto_limpo_teste_a_1569.png` e `06_texto_limpo_teste_b_600.png` — os dois níveis de validação da limpeza de texto; `evidencias/print_conferencia_janelas.png` — a conferência das seis janelas dos grafos contra a `fato_rede`, com `confere = true` em todas e a linha do dia degenerado do Monark; `evidencias/bloco3/11_pub_pseudonimo_injetivo.png` — a unicidade do pseudônimo na `pub`; `evidencias/bloco5/inventario_catalogo_final.png` — os 24 objetos do catálogo, todos comentados; `evidencias/bloco5/regua_antes.png` e `regua_depois_arthur.png` — a régua de reexecução antes e depois, idêntica exceto nas chaves de versão; as três colunas, inclusive a intermediária do Monark, em `tests/regua_reexecucao.md`; `evidencias/bloco5/analise_reexecucao_csv_identicos.png` — os 35 arquivos da análise reproduzidos byte a byte; `evidencias/bloco5/v_promovivel_texto_limpo_zero_div.png` — a view regravada com zero divergências de `texto_limpo`.
 
+![QC_monark.png](evidencias/QC_monark.png)
+
+![QC_Arthur_do_val.png](evidencias/QC_Arthur_do_val.png)
+
+![QC_portao.png](evidencias/QC_portao.png)
+
+![06_qc_alertas_arthur_do_val.png](evidencias/06_qc_alertas_arthur_do_val.png)
+
+![06_qc_classificacao_e_portao.png](evidencias/06_qc_classificacao_e_portao.png)
+
+![06_texto_limpo_teste_a_1569.png](evidencias/06_texto_limpo_teste_a_1569.png)
+
+![06_texto_limpo_teste_b_600.png](evidencias/06_texto_limpo_teste_b_600.png)
+
+![print_conferencia_janelas.png](evidencias/print_conferencia_janelas.png)
+
+![11_pub_pseudonimo_injetivo.png](evidencias/bloco3/11_pub_pseudonimo_injetivo.png)
+
+![inventario_catalogo_final.png](evidencias/bloco5/inventario_catalogo_final.png)
+
+![regua_antes.png](evidencias/bloco5/regua_antes.png)
+
+![regua_depois_arthur.png](evidencias/bloco5/regua_depois_arthur.png)
+
+![analise_reexecucao_csv_identicos.png](evidencias/bloco5/analise_reexecucao_csv_identicos.png)
+
+![v_promovivel_texto_limpo_zero_div.png](evidencias/bloco5/v_promovivel_texto_limpo_zero_div.png)
+
 ## 6. Análise de Dados
 
 ### 6.0 Como a análise foi feita
@@ -820,17 +924,29 @@ A análise está no notebook `notebooks/05_analise.py`, com uma seção por perg
 
 *Fonte:* `gold.calendario_caso`. *Figura:* `evidencias/bloco4/p1_duracao.png`. *Print:* `evidencias/p1_print_resumo.png`.
 
+![p1_duracao.png](evidencias/bloco4/p1_duracao.png)
+
+![p1_print_resumo.png](evidencias/p1_print_resumo.png)
+
 Pela regra do calendário (linha de base = volume abaixo de 25 % do pico, contado a partir do estopim), o episódio do Monark durou 5 dias: estopim em 08/02, pico em 09/02 e primeiro dia de pós-rito em 13/02. A resposta, porém, é mais frágil do que o número sugere. O dia 13/02 foi um domingo, com 177 postagens; na segunda-feira seguinte o volume voltou a 539 (40 % do pico) e a coleta terminou com o caso ainda em declínio. O "retorno à linha de base" observado é um único dia e se confunde com a queda de fim de semana — a regra de 25 % é sensível à sazonalidade semanal, e a janela de 8 dias não permite saber se o caso se extinguiu ou apenas respirou. No caso do Arthur do Val a pergunta não tem resposta dentro dos dados: o volume permanece entre 776 e 878 postagens por dia (0,87–0,98 do pico) durante os oito dias seguintes ao pico, sem nenhum dia de pós-rito, e o 453 do último dia (14/03) é corte da coleta, não queda — ainda está acima do limiar. A duração é ≥ 10 dias, com fim não observado. O Monark mostra a queda de fim de semana em 12–13/02; o Arthur não: sábado e domingo 05–06/03 seguem em 96 % e 90 % do pico. A diferença entre os dois casos aparece já aqui: um episódio agudo, que cai à metade dois dias após o pico, e um platô sustentado, cujo estopim (04/03, 507) nem é o dia mais alto da semana — a linha de pré-crise do Arthur (média 770/dia) é a polêmica anterior da Ucrânia, e não um patamar "calmo" ao qual o caso pudesse retornar. Comparar as duas durações em dias absolutos, portanto, diz menos do que comparar a forma das curvas normalizadas, que é o que a figura faz.
 
 #### P2 — Quando ocorreu o pico, e quão abrupta foi a escalada?
 
 *Fonte:* `gold.calendario_caso`. *Figura:* `evidencias/bloco4/p2_abruptez.png`. *Print:* `evidencias/print_resumo_p2.png`.
 
+![p2_abruptez.png](evidencias/bloco4/p2_abruptez.png)
+
+![print_resumo_p2.png](evidencias/print_resumo_p2.png)
+
 Nos dois casos o pico chegou um dia depois do estopim — 09/02 no Monark (1.339 postagens) e 05/03 no Arthur do Val (896). A semelhança termina aí. A abruptez, medida com grão diário, lê-se melhor na queda do que na subida, porque a subida está comprometida nos dois corpora: no Monark a coleta começa no dia anterior ao estopim com 2 postagens, de modo que a variação do dia 0 mede o início da coleta e não o caso; no Arthur, o dia anterior ao estopim já tinha 861 postagens, herdadas da polêmica da Ucrânia. Feita essa ressalva, a razão pico/estopim é 1,20 no Monark e 1,77 no Arthur — mas, comparado à média da sua própria pré-crise (770/dia), o pico do Arthur é só 1,16 vezes maior, e a maior variação diária de toda a janela (+118 pontos do pico) é o 28/02 da Ucrânia, não o estopim de 04/03, que aliás é uma queda (−40 pontos). Na descida, os regimes divergem: o Monark perde 56 pontos no dia seguinte ao pico, cai à metade em 1 dia e a um quarto em 4; o Arthur oscila entre −9 e +11 pontos por oito dias, e não atinge a metade do pico dentro da janela — o último dia (453) fica cinco postagens acima desse limiar, e é corte de coleta. Em termos girardianos, o Monark tem a forma do rito: convergência súbita, descarga e dispersão; o Arthur tem a forma de uma crise que já estava instalada e à qual o estopim acrescenta um motivo, não um salto. As duas variações positivas que restam — +27 pontos na segunda-feira 14/02 do Monark (de 13 % para 40 % do pico) e +43 pontos do estopim ao pico do Arthur — lembram, respectivamente, que a sazonalidade semanal e a polêmica precedente são confundidores que uma coleta de 8 ou 18 dias não permite separar.
 
 #### P3 — Quantas contas distintas participaram do episódio?
 
 *Fonte:* `gold.dim_conta_papel`. *Figura:* `evidencias/bloco4/p3_participacao.png`. *Print:* `evidencias/print_resumo_P3_2.png`.
+
+![p3_participacao.png](evidencias/bloco4/p3_participacao.png)
+
+![print_resumo_P3_2.png](evidencias/print_resumo_P3_2.png)
 
 Participaram 11.358 contas no caso Arthur do Val e 5.574 no Monark — contando como participante quem postou ou quem foi mencionado em postagens do caso. Em ambos, cerca de 80 % são autoras (9.267 e 4.140) e o restante só aparece porque alguém o cita (2.091 e 1.434, entre elas o próprio alvo, que não posta em nenhum dos corpora). Não há como separar contas automatizadas: nem a Silver nem a Gold têm marcador de automação, o inventário não encontrou volume relevante em 2022, e nenhuma das 16.932 contas foi criada dentro da janela de coleta — o sinal mais simples de conta descartável dá zero, e é reportado como zero, não como exclusão. O que a contagem esconde é o perfil da participação: a multidão é larga e rasa. No Monark, 91 % das autoras escreveram uma única postagem (78 % no Arthur); a média é 1,16 e 1,5 postagens por autora; a conta mais ativa tem 37 e 77; e o 1 % mais prolífico responde por apenas 5,5 % e 9,6 % do volume, o décimo mais prolífico por 22 % e 32 %. A produção, portanto, é quase igualitária — o que vai contrastar com a atenção recebida, cujo Gini passa de 0,8 (P5): o linchamento não é obra de poucos que falam muito, mas de muitos que falam uma vez sobre poucos. A entrada das contas repete os dois regimes de P1 e P2: no Monark, 54 % das contas aparecem pela primeira vez no estopim ou no pico, dois dias em que a multidão se forma quase inteira; no Arthur, a entrada é chapada — 5 a 8 % das contas por dia durante toda a janela, com o maior dia sendo o 28/02 da Ucrânia (10 %) e não o estopim (4,6 %). Uma multidão que se forma de uma vez e outra que se renova todo dia são, também aqui, formas diferentes de crise.
 
@@ -842,11 +958,17 @@ A pergunta, tal como formulada no objetivo, **não é respondível com este inst
 
 *Fonte:* `gold.grafo_arestas` × `gold.papel_narrativo_v0` × `gold.fato_rede`. *Figura:* `evidencias/bloco4/p4_contagio.png`. *Print:* `evidencias/p4_print_resumo.png`.
 
+![p4_contagio.png](evidencias/bloco4/p4_contagio.png)
+
+![p4_print_resumo.png](evidencias/p4_print_resumo.png)
+
 Contágio, no sentido estrito de uma segunda pessoa que passa a ser atacada por associação com o alvo, só aparece no caso Monark: o convidado que relativizou a mesma tese no episódio e o apresentador de outra emissora que fez um gesto lido como adesão ao tema recebem juntos 229 menções (3,9 % do caso), com pico no dia 2 — um dia depois do pico de volume e um antes do pico de menções ao alvo. No Arthur do Val não há segunda vítima. Mas a pergunta revelou algo mais importante do que o contágio entre pessoas: para onde a multidão transfere a pressão. Entre as 25 contas mais mencionadas de cada caso, as vítimas secundárias são minoria; a maioria são instituições com poder de punir. No Monark, oito patrocinadoras, o programa e a emissora do segundo alvo recebem 17 % de todas as menções do caso — três quartos do que recebe o próprio alvo — e fazem pico no dia 1, quando o alvo ainda recebe só 13 % das menções do dia; o alvo só passa a concentrar a atenção (38 % no dia 3) depois que as instituições agiram. A multidão pressiona o mercado primeiro e converge na vítima depois. No Arthur do Val a transferência é para a política: os parlamentares e a casa legislativa recebem 37 % das menções do dia 8, num bloco de postagens que marca os deputados em conjunto para cobrar a cassação, enquanto a parcela do alvo cai de 53 % (dia 3) para 23 %. E o papel dos aliados diverge: no Monark o sócio do programa passa da aliança à acusação no dia 1; no Arthur o movimento a que o alvo pertence se afasta no dia 4 sem acusar e retoma o vínculo depois da janela — o aliado que acusa e o aliado que se cala são duas formas de o alvo ficar sozinho, e a segunda é a que a teoria mimética chama de unanimidade. Os papéis são declarados por leitura do caso, não medidos (`gold.papel_narrativo_v0`, `origem = declarado`), porque o classificador de posição diz de que lado o autor está em relação ao alvo, não em relação a quem ele menciona; o que os dados medem é o reflexo: quem recebe a atenção, quando, e em que proporção do alvo.
 
 **P4b — Os papéis narrativos vistos pela multidão: quem é mencionado, quando e por quem?**
 
 *Fonte:* `gold.grafo_arestas` × `gold.papel_narrativo_v0` (papel vigente após `dia_virada`) × `gold.fato_rede` × `gold.fato_atividade`. *Figura:* `evidencias/bloco4/p4b_papeis.png`. *Resumos:* `p4b_papeis_dia.csv`, `p4b_papeis_fase.csv`, `p4b_defasagem.csv`, `p4b_sobreposicao.csv`.
+
+![p4b_papeis.png](evidencias/bloco4/p4b_papeis.png)
 
 Depois do alvo, quem a multidão mais menciona não é quem a lidera, e sim quem legitima ou sofre a crise. Nos dois casos o segundo centro da rede é institucional: os patrocinadores do Monark recebem, nos dois primeiros dias, mais menções que o próprio alvo (33 % e 29 % contra 14 % e 13 %), e o bloco de parlamentares do Arthur do Val toma 37 % das menções do dia 8. A ordem em que a atenção se move no Monark — instituição, vítima secundária, alvo — mostra a multidão convergindo sobre o alvo por último. A instituição é invocada por quem acusa: no Arthur, 75 % das menções a ela vêm de acusadores do alvo, mais do que as menções ao próprio alvo, e nove em cada dez de seus acusadores também o acusam. O líder narrativo, ao contrário, mal é mencionado (menos de 1 % das menções); o co-apresentador que trocou de lado recebe 33 menções, a maioria de defensores do alvo. Os aliados do Arthur têm seu pico no dia do estopim e, ao se afastarem, continuam mencionados pela mesma multidão acusadora. A vítima secundária do Monark é acusada em parte pelos mesmos acusadores do alvo (54 %), mas por um público mais neutro — o modelo, que só lê a posição em relação ao alvo, não vê se ela é acusada ou defendida.
 
@@ -854,11 +976,19 @@ Depois do alvo, quem a multidão mais menciona não é quem a lidera, e sim quem
 
 *Fonte:* `gold.fato_rede` (Gini, HHI, centralização por dia) e `gold.grafo_arestas` (top-1/5/10 % por fase). *Figura:* `evidencias/bloco4/p5_concentracao.png`. *Print:* `evidencias/P5_print_resumo.png`.
 
+![p5_concentracao.png](evidencias/bloco4/p5_concentracao.png)
+
+![P5_print_resumo.png](evidencias/P5_print_resumo.png)
+
 A atenção é muito concentrada nos dois casos, mas em graus e trajetórias diferentes. O Gini das menções recebidas por dia fica entre 0,85 e 0,97 em todos os dezoito dias do Arthur do Val e entre 0,81 e 0,84 no núcleo do Monark (dias 0 a 3 e 6), caindo a 0,75 e 0,62 no sábado e no domingo do declínio — a afirmação preliminar de "Gini acima de 0,8 sempre" vale para o Arthur e para o miolo do Monark, não para a sua cauda. A distribuição é a mesma nos dois: entre 57 % e 81 % das contas mencionadas em cada fase recebem uma única menção, enquanto uma só conta — o alvo, em toda janela e nos dois casos — recebe 40 % de todas as menções do Arthur (o inventário anterior à limpeza dava 39,8 %) e 23 % das do Monark. O que distingue os casos é a direção. No Arthur do Val, a concentração é máxima na pré-crise (centralização de grau de entrada 0,83 no dia −7, HHI 0,41 no dia −3, 46 % das menções no alvo e 67 % no 1 % mais mencionado) e decai ao longo da janela até 0,28, 0,07 e 34 %: a atenção se dispersa — pelos aliados e antagonistas da polêmica anterior, depois pelos parlamentares do dia 8. No Monark é o inverso: no estopim e no pico o alvo recebe só 14 % e 13 % das menções e a centralização é 0,18 e 0,16, os menores valores da série, porque a multidão está espalhada pelos patrocinadores e pelo programa (P4); a concentração sobe no declínio — centralização 0,40 no dia 3 e 0,43 no dia 6, HHI de 0,03 para 0,18, alvo em 31 % das menções da fase. Concentração da atenção e convergência na vítima não são, portanto, a mesma coisa: o Monark mostra uma multidão que primeiro se dispersa entre os que podem punir e depois se fecha sobre o punido; o Arthur do Val, uma multidão que já chegou concentrada e se dilui à medida que a crise se institucionaliza. Os índices são de grafos diários (nós = autores ∪ mencionados do dia) e, por serem normalizados, comparáveis entre casos; o dia −1 do Monark, com dois nós, foi omitido.
 
 #### P6 — O pico de concentração coincide com o pico de volume?
 
 *Fonte:* `gold.fato_rede` × `gold.calendario_caso`, dias com ≥ 30 nós. *Figura:* `evidencias/bloco4/p6_defasagem.png`. *Print:* `evidencias/P6_print_resumo.png`.
+
+![p6_defasagem.png](evidencias/bloco4/p6_defasagem.png)
+
+![P6_print_resumo.png](evidencias/P6_print_resumo.png)
 
 Os picos não coincidem em nenhum dos dois casos, e a defasagem tem sinal contrário. No Monark, o volume faz pico no dia 1 e toda medida de concentração faz pico depois: as menções ao alvo no dia 3, a centralização de grau de entrada e a parcela do alvo nas menções no dia 6. A correlação entre volume diário e centralização é negativa (−0,38; com a parcela do alvo, −0,49): os dias em que mais se fala são os dias em que a atenção está mais espalhada — pelos patrocinadores, pelo programa, pelas vítimas secundárias — e a multidão só se fecha sobre o alvo quando o volume já caiu à metade; no dia 6, com 40 % do volume do pico, a concentração é a maior da série. Ao longo de todo o caso, a centralização do grafo e a parcela do alvo andam coladas: o único centro é ele. É a sequência que a teoria mimética prevê para a convergência — a crise indiferenciada antes da unanimidade contra um só. No Arthur do Val a resposta depende da janela. A partir do estopim, a concentração acompanha o volume de perto e sem relação estatística (correlação 0,06): centralização no dia 2, parcela do alvo no dia 3, e daí em diante o volume fica estável enquanto a concentração cai — mais gente fala, de mais gente. Aqui as duas linhas se separam: na pré-crise e no dia 8 o grafo tem um centro que não é o alvo (os aliados e antagonistas da viagem; os parlamentares cobrados pela cassação), e no dia 8 a centralização sobe sem que a parcela do alvo suba. Na janela inteira, todos os picos de concentração caem nos dias −3 e −4, e o maior volume da série é o 28/02: a atenção mais concentrada sobre o Arthur do Val não é a do caso analisado, é a da polêmica da Ucrânia que o antecede. Os dois casos compartilham um único gesto — a concentração sobe no dia seguinte ao pico de volume, quando a multidão olha para o alvo — e divergem no que vem depois: o Monark continua convergindo; o Arthur dispersa. As correlações são descritivas (7 e 11 pontos), e a centralização de Freeman tende a crescer em grafos menores, o que pode inflar os dias de cauda; a parcela do alvo, que não tem esse viés, conta a mesma história.
 
@@ -866,11 +996,19 @@ Os picos não coincidem em nenhum dos dois casos, e a defasagem tem sinal contr�
 
 *Fonte:* `gold.fato_atividade`, versão única do classificador `hf@a483947`. *Figura:* `evidencias/bloco4/p7_defesa.png`. *Print:* `evidencias/P7_print_resumo.png`.
 
+![p7_defesa.png](evidencias/bloco4/p7_defesa.png)
+
+![P7_print_resumo.png](evidencias/P7_print_resumo.png)
+
 Houve defesa nos dois casos, com pesos muito diferentes. No Monark ela aparece já no dia do estopim (32 % das postagens, contra 53 % de acusação) e ultrapassa a acusação no dia seguinte, o pico (43 % contra 35 %), mantendo a maioria relativa até o fim da janela; a razão defesa/acusação sobe de 0,60 no estopim para 1,25 no pico e 1,33 no pós-rito, e o caso inteiro termina empatado (1,03). O alcance demora mais: no estopim as postagens acusatórias têm 587 likes cada uma contra 123 das de defesa, e no caso inteiro a defesa é 41 % das postagens e 13 % dos likes — mas esse total é do primeiro dia; a partir do dia 2 a defesa passa a ter mais likes que a acusação e nos dias 4 e 5 concentra três quartos deles. A unanimidade contra o alvo, no Monark, é uma unanimidade de audiência que dura um dia. No Arthur do Val a defesa é minoritária em toda fase (13 a 19 % das postagens; razão entre 0,21 e 0,30) e o máximo diário é 25 %, no dia 2. A única exceção é de engajamento, não de contagem: no dia do pico as postagens de defesa recebem 409 likes cada uma contra 14 das acusatórias — 85 % dos likes do dia — o que, com cerca de 160 postagens de defesa, aponta para uma ou duas peças virais, e no declínio esse alcance desaparece (8 % dos likes). Na chave girardiana, o Monark tem uma contra-multidão que se forma em um dia, não se dissolve e acaba por ser ouvida; o Arthur do Val tem a unanimidade numérica do rito, com a defesa reduzida a um gesto isolado que a multidão vê e não repete. Estas proporções dependem de um classificador cujo rótulo `defensor` tem F1 0,50; a parcela de defesa entra como intervalo, e a pré-crise do Arthur do Val mede posição sobre outra polêmica.
 
 #### P8 — Acusadores interagem com acusadores? A rede é assortativa por posição?
 
 *Fonte:* `gold.grafo_arestas` (mix de stance por destino; Newman restrito a arestas autor → autor). *Figura:* `evidencias/bloco4/p8_destino_stance.png`. *Print:* `evidencias/P8_print_resumo.png`.
+
+![p8_destino_stance.png](evidencias/bloco4/p8_destino_stance.png)
+
+![P8_print_resumo.png](evidencias/P8_print_resumo.png)
 
 A assortatividade por posição não pode ser calculada no grafo inteiro: só quem escreve tem stance, e a maior parte das menções vai ao alvo ou a contas que apenas são mencionadas (81 % no Arthur do Val, 93 % no Monark). Restrita às arestas entre autores, a partir do estopim, a mistura é aleatória no Arthur do Val (r = 0,01 sobre 2.363 menções): acusadores mencionam acusadores em 53 % das vezes, e 53 % dos destinos-autores são acusadores. No Monark o coeficiente é 0,21 sobre apenas 401 menções, mas vem inteiramente do bloco neutro-neutro — 56 menções em 19 pares, poucas contas se citando repetidamente; entre acusadores e defensores o r cai a 0,01, e os defensores mencionam acusadores (80) mais do que outros defensores (70). Não há câmaras de eco entre quem escreve: a contra-multidão do Monark responde a quem acusa. O mix por destino confirma a leitura e a estende ao alvo. No Arthur do Val as menções ao alvo são um pouco mais acusatórias que as aos demais em toda fase (70–73 % contra 64–69 %), e a defesa, no pico, fala menos com ele (13 %) do que com terceiros (16 %): defende-se o Arthur do Val falando com aliados e adversários, não com ele. No Monark acusação e defesa convergem as duas para o alvo — a parcela acusatória das menções a ele supera a das menções aos demais em toda fase (por exemplo 39 % contra 33 % no declínio) e a parcela defensora também (48 % contra 41 %); o que sobra para os demais é o neutro (26 % no declínio contra 12 % ao alvo): patrocinadores, programa e instituições recebem menção informativa. No pico, as menções ao Monark estão exatamente divididas, 44 % acusadoras e 45 % defensoras. As proporções carregam a ressalva do classificador (`defensor` F1 0,50), e a assortatividade do Monark descreve 401 menções.
 
@@ -878,17 +1016,29 @@ A assortatividade por posição não pode ser calculada no grafo inteiro: só qu
 
 *Fonte:* `gold.fato_referencia` (replies ao alvo / postagens) × `gold.fato_rede.isolamento_alvo` (parcela do alvo nas menções). *Figura:* `evidencias/bloco4/p9_falado_com_sobre.png`. *Print:* `evidencias/P9_print_resumo.png`.
 
+![p9_falado_com_sobre.png](evidencias/bloco4/p9_falado_com_sobre.png)
+
+![P9_print_resumo.png](evidencias/P9_print_resumo.png)
+
 Ser o centro da rede não é o mesmo que ser interpelado. No Monark, enquanto a multidão está reunida (estopim e pico) só 3 % das postagens respondem ao alvo e ele recebe 13 % das menções; a partir do dia 2 as duas medidas sobem juntas (19 % de replies e 31 % das menções no declínio), e quem passa a falar com ele é a defesa que a essa altura já supera a acusação. No Arthur do Val ocorre o inverso: antes do estopim 42 % das postagens eram respostas diretas a ele; depois, o isolamento permanece alto (35–53 % das menções), mas os replies caem a 11–14 % e a conversa se desloca para terceiros (40–49 %). O rito agudo termina com a multidão falando com o alvo; o platô o mantém como assunto e o remove como interlocutor. Duas cautelas de medida: só replies contam como "falado com", porque `quote` não carrega o destinatário na Silver; e, como o alvo não posta no corpus, um reply a ele é interpelação a uma postagem fora da coleta, não diálogo.
 
 #### P10 — Há inversão de polo entre líderes de acusação e alvo?
 
 *Fonte:* `gold.grafo_arestas` × `gold.dim_conta_papel` × `gold.papel_narrativo_v0`; líderes identificados por posição no ranking (L1–L10). *Figura:* `evidencias/bloco4/p10_lideres.png`. *Print:* `evidencias/P10_resumo_print.png`.
 
+![p10_lideres.png](evidencias/bloco4/p10_lideres.png)
+
+![P10_resumo_print.png](evidencias/P10_resumo_print.png)
+
 Não há inversão de polo porque não há segundo polo. A definição prevista — líder de acusação como a conta acusadora entre as mais mencionadas — não encontra ninguém em nenhum dos casos: depois do alvo, as contas mais mencionadas são aliados, instituições legitimadoras, veículos e vítimas secundárias, que quase não postam. Definidos pela emissão, os dez maiores acusadores de cada caso recebem juntos entre 0 e 1,7 % das menções em qualquer fase, e zero no pico; no Monark nove deles não recebem uma única menção em todo o episódio. Quem conduz a acusação é invisível para a multidão. O que os líderes fazem confirma P9 pelo outro lado: no Monark, durante estopim e pico, atiram em dezenas de destinos e dirigem só 5–7 % das menções ao alvo, convergindo (42 %) apenas no declínio; no Arthur atiram largo e constante (27–33 % ao alvo) e o que o estopim troca é o elenco — nenhum líder da polêmica anterior sobrevive a ele. A hipótese trifásica do objetivo (líderes, depois alvo, depois líderes) fica refutada e registrada; uma cautela permanece: só se veem as menções dos líderes que casaram com a consulta de coleta, de modo que o volume emitido é um piso.
 
 #### P11 — As assinaturas estruturais dos dois episódios coincidem quando alinhadas pelo dia do estopim?
 
 *Fonte:* toda a Gold, mais os resumos de P8, P9 e P10; sete assinaturas estáticas (caso inteiro) e seis dinâmicas (por dia, alinhadas por `dias_desde_estopim`). *Figura:* `evidencias/bloco4/p11_assinaturas.png`. *Print:* `evidencias/P11-print_resumo.png`.
+
+![p11_assinaturas.png](evidencias/bloco4/p11_assinaturas.png)
+
+![P11-print_resumo.png](evidencias/P11-print_resumo.png)
 
 Os dois episódios coincidem no que são e divergem no que fazem. Na anatomia, são o mesmo objeto: nenhuma câmara de eco (assortatividade 0,016 e 0,014), nenhum líder visível (os dez maiores acusadores recebem 1,6 % e 1,7 % das menções, no máximo), um só polo — o alvo — com um segundo centro que é institucional nos dois casos (37 % e 33 % das menções num dia), concentração altíssima em quem é falado (Gini 0,90 e 0,81), uma multidão que fala entre si sobre o alvo em vez de com ele (0,25–0,33 e 0,09–0,45 replies ao alvo por reply a terceiros) e que é feita de contas de uma única postagem (78 % e 91 %). Na dinâmica, alinhada pelo dia do estopim, os casos se separam, e sempre da mesma maneira: no Monark, entre o pico e o declínio, a parcela do alvo sobe 19 pontos, os replies a ele 15, a mira dos líderes 38, o alcance da defesa 16, e a parcela das instituições cai 23 — tudo converge sobre o alvo, inclusive quem o defende; no Arthur do Val nenhuma dessas curvas se move mais de 5 pontos depois do estopim, o alcance da defesa desaba 74 pontos e a única mudança é a instituição no dia 8. O que se move no Arthur é anterior: entre a pré-crise e o resto, a parcela do alvo cai de 0,49 para 0,35 e os replies a ele de 0,45 para 0,13. Um caso converge; o outro já tinha se dispersado no momento que chamamos de estopim. A modelagem dimensional existe para permitir exatamente esta sobreposição — e o que ela mostra é uma anatomia comum com dois regimes de tempo, o rito agudo e o platô, que as onze perguntas anteriores viram uma a uma e aqui aparecem juntas.
 
@@ -898,19 +1048,35 @@ Os oito grafos foram exportados das views `pub.v_grafo_arestas` e `pub.v_grafo_n
 
 **`g_monark_d0-1_papel.png` — Monark, estopim e pico (dias 0–1), cor por papel.** 1.729 nós e 2.238 arestas; exibidos 648 nós e 1.349 arestas (grau ≥ 2). O alvo domina, cercado de uma multidão de nós pequenos, e acima dele um bloco de sete ou oito nós médios densamente ligados entre si, unidos ao alvo por um feixe de arestas: é o segundo centro de P4b, um bloco de contas só mencionadas, não autoras — os patrocinadores. Nenhum nó isolado rivaliza com o alvo, mas o conjunto institucional recebe mais menções que ele nestes dois dias (P4b).
 
+![g_monark_d0-1_papel.png](evidencias/bloco4/grafos/g_monark_d0-1_papel.png)
+
 **`g_monark_d0-1_stance.png` — mesma janela, cor por stance modal.** Mesmo grafo e mesmo filtro. Vermelho e verde aparecem entremeados em torno do alvo e dentro do bloco de cima, sem nenhum agrupamento por cor: não há câmaras de eco no auge (P8), e acusadores e defensores mencionam o alvo e o bloco institucional ao mesmo tempo. Ressalva do classificador em `defensor` (F1 0,50).
+
+![g_monark_d0-1_stance.png](evidencias/bloco4/grafos/g_monark_d0-1_stance.png)
 
 **`g_monark_d2+_papel.png` — Monark, declínio e pós-rito (dias ≥ 2), cor por papel.** 2.164 nós e 2.570 arestas; exibidos 804 e 1.330. Estrela de centro único: o alvo passa de 13 % a 30 % das menções da janela, e o bloco de cima encolhe e troca de elenco — seis dos sete patrocinadores saem do topo, um persiste, e as vítimas secundárias tomam o lugar. A sequência instituição → vítima secundária → alvo de P4b aparece a olho de uma imagem para a outra.
 
+![g_monark_d2+_papel.png](evidencias/bloco4/grafos/g_monark_d2+_papel.png)
+
 **`g_monark_d2+_stance.png` — mesma janela, cor por stance modal.** O verde domina em volta do alvo, com o vermelho entremeado e nenhum bloco por cor; entre os 804 nós exibidos, 29,5 % são defensores e 24,6 % acusadores. P7 (a defesa supera a acusação a partir do dia 2) e P8 (sem câmara de eco) na mesma imagem. Ressalva do classificador.
+
+![g_monark_d2+_stance.png](evidencias/bloco4/grafos/g_monark_d2+_stance.png)
 
 **`g_arthur_dneg_papel.png` — Arthur do Val, pré-crise (dias < 0; a polêmica da Ucrânia), cor por papel.** 4.154 nós e 7.180 arestas; exibidos 2.211 e 5.302. Estrela em torno do alvo com cinco polos secundários a um passo dele — os dois aliados, que se afastarão no dia 4, e três figuras políticas (`outro`); nenhum polo é autor relevante. O alvo já concentra 49 % das menções antes do estopim, e 28 % das menções a ele vêm de contas de uma única aresta, a multidão rasa de P3.
 
+![g_arthur_dneg_papel.png](evidencias/bloco4/grafos/g_arthur_dneg_papel.png)
+
 **`g_arthur_d0-1_papel.png` — Arthur do Val, estopim e pico (dias 0–1), cor por papel.** 1.210 nós e 1.588 arestas; exibidos 542 e 978. Estrela pura: o alvo no centro, a multidão em volta, nenhum polo secundário — os aliados e os políticos da Ucrânia somem da janela. O estopim não muda a forma, muda o elenco. É o menor grafo do caso: 882 menções por dia, contra 1.485 na pré-crise e 1.199 no declínio.
+
+![g_arthur_d0-1_papel.png](evidencias/bloco4/grafos/g_arthur_d0-1_papel.png)
 
 **`g_arthur_d2+_papel.png` — Arthur do Val, declínio (dias 2–10), cor por papel.** 5.143 nós e 7.801 arestas; exibidos 2.222 e 5.116. O alvo no centro com um feixe denso de arestas e, no canto inferior esquerdo, um bloco compacto afastado dele no desenho e ligado a ele por um feixe grosso: o bloco dos parlamentares do dia 8. A distância no layout é efeito do algoritmo sobre um bloco com muitas arestas internas, não de dois públicos — 90 % de quem acusa a instituição também acusa o alvo (P4b): mesmos acusadores, dois destinatários.
 
+![g_arthur_d2+_papel.png](evidencias/bloco4/grafos/g_arthur_d2+_papel.png)
+
 **`g_arthur_d2+_stance.png` — mesma janela, cor por stance modal.** O vermelho domina, convergindo para o alvo e para o bloco dos parlamentares; o verde é quase imperceptível e sem estrutura própria; nenhum bloco por cor. No declínio do Arthur do Val quem fala do alvo é a acusação, e a defesa fala com terceiros (P8, P9). O alvo, só mencionado, fica em off-white no centro, marcado pelo tamanho e pela borda. Ressalva do classificador.
+
+![g_arthur_d2+_stance.png](evidencias/bloco4/grafos/g_arthur_d2+_stance.png)
 
 ### 6.3 Discussão geral
 
