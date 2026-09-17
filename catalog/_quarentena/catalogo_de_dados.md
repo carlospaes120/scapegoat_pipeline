@@ -1,6 +1,8 @@
-# Catálogo de Dados — `scapegoat` (Gold e `pub`)
+# Catálogo de Dados — camada Gold e views `pub`
 
-Transcrito da seção 3 do `README.md` em 17/09/2026, depois da reexecução do pipeline pelo job `scapegoat_pipeline` (16/09, `versao_pipeline = v1.0`); as referências a seções são as do README. Os `COMMENT` de tabela e de coluna estão gravados no Unity Catalog e podem ser consultados em `system.information_schema.tables` e `.columns`. A Bronze está descrita na seção 3.2 do README e a Silver, objeto a objeto, na seção 3.3.
+Pipeline `scapegoat` · Databricks (Unity Catalog, Delta Lake) · versão de 15/09/2026 (substitui a de 07/09: inclui `fato_referencia`, `papel_narrativo_v0`, as quarentenas e a coluna **domínio** com mínimos e máximos observados)
+
+Este arquivo transcreve a seção 3 do `README.md`. Os comentários de tabela e coluna estão também gravados no Unity Catalog (`COMMENT ON TABLE` / `ALTER COLUMN … COMMENT`) e podem ser consultados em `system.information_schema.tables` e `.columns` com `table_schema = 'gold'`. A Bronze e a Silver estão descritas nas seções 3.2 e 3.3 do README.
 
 ## Gold e `pub`
 
@@ -131,13 +133,13 @@ flowchart LR
 
 Seis decisões de modelagem ficam registradas. Pico e limiar de declínio são calculados só a partir do estopim, porque o máximo global do Arthur do Val (28/02, 1.359 postagens) pertence a outra polêmica e ancorar o pico nele deixava o caso sem fase `pico`. Os alvos são identificados por lista declarada, não por autoria, porque não têm postagens no corpus; a dimensão de papéis nasce de autores ∪ mencionados. `papel_principal` fica aberto: o MVP marca só `alvo` e `demais`, e os papéis narrativos entram por `papel_narrativo_v0` sem alterar a dimensão. Dimensões degeneradas para stance e mecanismo. Nenhum handle nem texto na Gold; a `pub` expõe views pseudonimizadas por hash estável. E a estrutura do grafo fica separada das métricas: `fato_rede` responde às perguntas, `grafo_arestas` alimenta as figuras, e qualquer janela temporal é um filtro na exportação, não uma tabela nova.
 
-**Pseudonimização (`pub`).** O identificador público de uma conta é `n` seguido de dez caracteres hexadecimais de um SHA-256 calculado sobre um sal e o `conta_id`. A mesma conta recebe o mesmo pseudônimo em qualquer caso, dia ou export, o que permite ver que 533 contas participam dos dois casos; 16.932 linhas de nó (caso × conta) produzem 16.399 pseudônimos distintos, sem colisão. Ninguém tem nome na `pub`, nem o alvo. O valor do sal não aparece neste documento nem nas evidências; onde ele está e o que isso implica é tratado na seção 5.
+**Pseudonimização (`pub`).** O identificador público de uma conta é `n` seguido de dez caracteres hexadecimais de um SHA-256 calculado sobre um sal e o `conta_id`. A mesma conta recebe o mesmo pseudônimo em qualquer caso, dia ou export, o que permite ver que 533 contas participam dos dois casos; 16.932 linhas de nó (caso × conta) produzem 16.399 pseudônimos distintos, sem colisão. Ninguém tem nome na `pub`, nem o alvo. O valor do sal não aparece neste documento, no repositório nem nas evidências; onde ele está e o que isso implica é tratado na seção 5 do README.
 
-## Fichas do catálogo
+## Catálogo de Dados
 
-Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`COMMENT ON TABLE`, `ALTER COLUMN … COMMENT`) e podem ser consultados em `system.information_schema.tables` e `.columns`; todas as tabelas da Gold carregam as tags `layer = gold`, `owner = carlos`, `domain = scapegoating`, `refresh = manual`, e `classification` igual a `anonimizado` para `calendario_caso`, `fato_atividade`, `fato_rede` e `fato_referencia` (nenhum identificador de conta) e `pseudonimizado` para `dim_conta_papel`, `grafo_arestas` e `papel_narrativo_v0` (carregam `conta_id`). A coluna **domínio** traz, para os categóricos, os valores admitidos pelos `CHECK`, e, para os numéricos e datas, o mínimo e o máximo observados no dado carregado em 15/09/2026 (consulta em `evidencias/bloco5/catalogo_dominios_numericos.png` e `catalogo_dominios_numericos_2.png`). Uma leitura desses extremos precisa ser feita com o dia degenerado em mente: o Monark tem um dia com 2 nós (07/02, dia anterior ao estopim), e é ele que produz os máximos de 1,0 em centralização, HHI e parcela do alvo e o mínimo de 0,5 do Gini; a análise exclui dias com menos de 30 nós (seção 5). A versão completa do catálogo está em `catalog/catalogo_de_dados.md`.
+Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`COMMENT ON TABLE`, `ALTER COLUMN … COMMENT`) e podem ser consultados em `system.information_schema.tables` e `.columns`; todas as tabelas da Gold carregam as tags `layer = gold`, `owner = carlos`, `domain = scapegoating`, `refresh = manual`, e `classification` igual a `anonimizado` para `calendario_caso`, `fato_atividade`, `fato_rede` e `fato_referencia` (nenhum identificador de conta) e `pseudonimizado` para `dim_conta_papel`, `grafo_arestas` e `papel_narrativo_v0` (carregam `conta_id`). A coluna **domínio** traz, para os categóricos, os valores admitidos pelos `CHECK`, e, para os numéricos e datas, o mínimo e o máximo observados no dado carregado em 15/09/2026 (consulta em `evidencias/bloco5/catalogo_dominios_numericos.png`). Uma leitura desses extremos precisa ser feita com o dia degenerado em mente: o Monark tem um dia com 2 nós (07/02, dia anterior ao estopim), e é ele que produz os máximos de 1,0 em centralização, HHI e parcela do alvo e o mínimo de 0,5 do Gini; a análise exclui dias com menos de 30 nós (README, seção 5). A versão completa do catálogo está em `catalog/catalogo_de_dados.md`.
 
-### `gold.calendario_caso`
+#### `gold.calendario_caso`
 
 | | |
 |---|---|
@@ -155,7 +157,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `fase` | string | `pre_crise` \| `estopim` \| `escalada` \| `pico` \| `declinio` \| `pos_rito` | Fase derivada do volume (ver regra). |
 | `volume_postagens` | int | 2 a 1.359 | Postagens do caso no dia. Aditiva. |
 
-### `gold.dim_conta_papel`
+#### `gold.dim_conta_papel`
 
 | | |
 |---|---|
@@ -174,7 +176,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `n_mencoes_recebidas_caso` | int | 0 a 9.132 | Menções recebidas pela conta em postagens do caso. |
 | `primeiro_dia` / `ultimo_dia` | date | 2022-02-07 a 2022-03-14 | Primeira e última data em que a conta aparece no caso (autora ou mencionada). |
 
-### `gold.papel_narrativo_v0`
+#### `gold.papel_narrativo_v0`
 
 | | |
 |---|---|
@@ -195,7 +197,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `justificativa` | string | texto livre | Motivo do rótulo, sem nome nem texto de postagem. |
 | `decidido_em` | date | 2026-09-08 | Data da decisão. |
 
-### `gold.fato_atividade`
+#### `gold.fato_atividade`
 
 | | |
 |---|---|
@@ -220,7 +222,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `quotes` | bigint | 0 a 4.930 | Idem, citações. |
 | `respostas` | bigint | 0 a 2.939 | Idem, respostas recebidas. |
 
-### `gold.fato_referencia`
+#### `gold.fato_referencia`
 
 | | |
 |---|---|
@@ -242,7 +244,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `n_postagens` | int | 1 a 372 | Postagens no grão. Aditiva. |
 | `n_autores_distintos` | int | 1 a 357 | Autores distintos no grão. Semi-aditiva: não somar entre linhas. |
 
-### `gold.fato_rede`
+#### `gold.fato_rede`
 
 | | |
 |---|---|
@@ -251,14 +253,14 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | **Linhagem** | `silver.mencao ⋈ silver.postagem` (arestas) + `gold.dim_conta_papel` (alvo) + `gold.calendario_caso` (fase). |
 | **Natureza** | Snapshot — medidas **não aditivas**; nunca somar entre dias. Comparar entre casos apenas por `dias_desde_estopim` e por medida normalizada. |
 | **Cuidados** | Dias com poucos nós produzem métricas degeneradas (Monark 2022-02-07: 2 nós); a análise adota mínimo de 30 nós. `assortatividade_stance` é NULL por construção (só autores têm stance). |
-| **Versão** | `versao_pipeline = v1.0`, igual à tag `v1.0` do repositório, gravada pela execução do job `scapegoat_pipeline` em 16/09/2026. A carga inicial de 07/09 usara o rótulo de trabalho `gold-v1` (tag `v0.4.0`), substituído pela reexecução (seção 5.7). |
+| **Versão** | `versao_pipeline = gold-v1` corresponde à tag `v0.4.0` do repositório (rótulo de trabalho gravado na carga de 07/09; não reescrito).  |
 | **Conferência** | Σ `n_mencoes` = 5.868 (Monark) + 22.954 (Arthur do Val), igual a `silver.mencao`. |
 
 | coluna | tipo | domínio | descrição |
 |---|---|---|---|
 | `caso`, `data` | string, date | como em `calendario_caso` | Chave para `calendario_caso`. |
 | `dias_desde_estopim`, `fase` | int, string | como em `calendario_caso` | Copiados de `calendario_caso`. |
-| `versao_pipeline` | string | `v1.0` | Versão do cálculo de rede; recalcular gera nova versão. |
+| `versao_pipeline` | string | `gold-v1` | Versão do cálculo de rede; recalcular gera nova versão. |
 | `n_nos` | int | 2 a 1.113 | Contas no grafo do dia. |
 | `n_arestas` | int | 1 a 1.958 | Pares distintos autor → mencionado. |
 | `n_mencoes` | int | 1 a 2.552 | Soma dos pesos das arestas. |
@@ -269,7 +271,7 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `isolamento_alvo` | double | 0,127 a 1,0 | Menções ao alvo / menções do dia. Mede centralidade do alvo (a análise a chama "parcela do alvo"). |
 | `assortatividade_stance` | double | NULL | NULL no MVP, por construção. |
 
-### `gold.grafo_arestas`
+#### `gold.grafo_arestas`
 
 | | |
 |---|---|
@@ -289,17 +291,17 @@ Os comentários de tabela e de coluna abaixo estão gravados no Unity Catalog (`
 | `stance_origem` | string | `acusador` \| `defensor` \| `neutro` | Stance mais frequente entre as postagens que geraram a aresta no dia. |
 | `papel_origem`, `papel_destino` | string | `alvo` \| `demais` | De `dim_conta_papel`. `destino = alvo` isola o subgrafo dirigido à vítima. |
 
-### Camada `pub`
+#### Camada `pub`
 
 | view | grão | o que faz |
 |---|---|---|
 | `pub.v_grafo_arestas` | = `grafo_arestas` | Troca os `conta_id` por pseudônimo e nomeia as colunas como o Gephi espera (`source`, `target`, `weight`), mantendo `caso`, `data`, `dias_desde_estopim`, `fase`, `stance_origem`, `papel_origem`, `papel_destino`. |
 | `pub.v_grafo_nos` | caso × conta | Um nó por caso com `id` (pseudônimo), `papel` (`alvo` \| `demais`), `stance_modal` (`acusador` \| `defensor` \| `neutro` \| `nao_autor` para quem só é mencionado, inclusive o alvo), `n_postagens_caso`, `n_mencoes_recebidas_caso`, `primeiro_dia`, `ultimo_dia` — atributos para cor e tamanho. |
 
-### Bronze e quarentenas
+#### Bronze e quarentenas
 
-`bronze.arquivo` e `bronze.registro` estão descritas em 3.2. Duas tabelas da Gold permanecem no catálogo com o sufixo `_quarentena`, por regra do projeto (substituição por `RENAME`, nunca `DROP`): `dim_conta_papel_v0_quarentena`, primeira versão da dimensão, com handle no esquema, substituída em 07/09 pela versão só com `conta_id`; e `fato_referencia_v0_quarentena`, a v0 cuja carga falhou, vazia. Ambas comentadas como "não usar; não exportar".
+`bronze.arquivo` e `bronze.registro` estão descritas na seção 3.2 do README. Duas tabelas da Gold permanecem no catálogo com o sufixo `_quarentena`, por regra do projeto (substituição por `RENAME`, nunca `DROP`): `dim_conta_papel_v0_quarentena`, primeira versão da dimensão, com handle no esquema, substituída em 07/09 pela versão só com `conta_id`; e `fato_referencia_v0_quarentena`, a v0 cuja carga falhou, vazia. Ambas comentadas como "não usar; não exportar".
 
-### Inventário
+#### Inventário
 
 Em 13/09/2026 o catálogo `scapegoat` tinha **24 objetos** — 2 na Bronze, 11 na Silver (7 tabelas e 4 views), 9 na Gold (7 tabelas e 2 quarentenas) e 2 views na `pub` — **todos com `COMMENT` de tabela**, e todas as colunas da Gold e da `pub` com `COMMENT` de coluna, conforme `system.information_schema.tables` e `.columns`.

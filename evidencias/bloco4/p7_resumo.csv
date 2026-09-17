@@ -1,0 +1,12 @@
+caso,fase,postagens,parcela_acusador,parcela_defensor,parcela_neutro,razao_defesa_acusacao,likes_por_post_acusador,likes_por_post_defensor,likes_por_post_neutro,parcela_likes_defensor
+arthur_do_val,pre_crise,5390,0.612,0.127,0.261,0.21,9.1,33.1,8.9,0.349
+arthur_do_val,estopim,507,0.631,0.187,0.181,0.3,4.4,22.9,23.1,0.382
+arthur_do_val,pico,896,0.633,0.179,0.189,0.28,13.6,408.5,21.4,0.852
+arthur_do_val,declinio,7100,0.578,0.171,0.251,0.3,15.8,8.5,27.0,0.084
+arthur_do_val,todas,13893,0.597,0.155,0.248,0.26,12.5,46.7,19.2,0.372
+monark,pre_crise,2,0.5,0.0,0.5,0.0,1.0,,2.0,0.0
+monark,estopim,1114,0.525,0.317,0.158,0.6,586.9,123.0,368.4,0.096
+monark,pico,1339,0.347,0.432,0.221,1.25,14.7,11.9,23.3,0.335
+monark,declinio,2171,0.375,0.442,0.183,1.18,21.8,11.8,4.4,0.368
+monark,pos_rito,177,0.373,0.497,0.13,1.33,4.1,21.4,11.7,0.776
+monark,todas,4803,0.402,0.412,0.186,1.03,190.8,32.1,82.6,0.126

@@ -1,0 +1,12 @@
+caso,fase,contas_mencionadas,mencoes,parcela_alvo,parcela_top1_conta,parcela_top1pct,parcela_top5pct,parcela_top10pct,parcela_contas_com_1_mencao
+arthur_do_val,pre_crise,1146,10395,0.461,0.461,0.67,0.768,0.819,0.569
+arthur_do_val,estopim,155,646,0.415,0.415,0.472,0.649,0.728,0.716
+arthur_do_val,pico,333,1118,0.36,0.36,0.438,0.58,0.665,0.742
+arthur_do_val,declinio,1779,10795,0.34,0.34,0.58,0.719,0.781,0.664
+arthur_do_val,todas,2943,22954,0.398,0.398,0.638,0.759,0.814,0.625
+monark,pre_crise,1,1,1.0,1.0,1.0,1.0,1.0,1.0
+monark,estopim,358,1004,0.141,0.141,0.292,0.57,0.637,0.788
+monark,pico,526,1500,0.127,0.127,0.336,0.557,0.621,0.738
+monark,declinio,883,3073,0.307,0.307,0.443,0.598,0.67,0.72
+monark,pos_rito,171,290,0.207,0.207,0.245,0.341,0.424,0.813
+monark,todas,1648,5868,0.228,0.228,0.48,0.62,0.688,0.73

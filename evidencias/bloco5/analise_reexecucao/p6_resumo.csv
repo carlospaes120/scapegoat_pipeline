@@ -1,0 +1,5 @@
+caso,janela,pico_volume,pico_mencoes_alvo,pico_isolamento,pico_centralizacao,pico_hhi,pico_gini,defasagem_centralizacao,defasagem_isolamento,defasagem_mencoes_alvo,corr_volume_centralizacao,corr_volume_isolamento,dias
+arthur_do_val,a partir do estopim,1,2,3,2,3,8,1,2,1,0.06,0.12,11
+arthur_do_val,todos os dias validos,-4,-4,-3,-3,-3,-3,1,1,0,0.03,-0.12,18
+monark,a partir do estopim,1,3,6,6,6,2,5,5,2,-0.38,-0.49,7
+monark,todos os dias validos,1,3,6,6,6,2,5,5,2,-0.38,-0.49,7

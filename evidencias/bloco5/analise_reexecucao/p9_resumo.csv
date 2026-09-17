@@ -1,0 +1,10 @@
+caso,fase,postagens,replies_alvo,replies_terceiros,parcela_replies_alvo,parcela_replies_terceiros,razao_alvo_terceiros,isolamento_alvo_medio,isolamento_alvo_min,isolamento_alvo_max,dias_fase
+arthur_do_val,pre_crise,5390,2246,2407,0.417,0.447,0.93,0.485,0.38,0.639,7
+arthur_do_val,estopim,507,68,203,0.134,0.4,0.33,0.415,0.415,0.415,1
+arthur_do_val,pico,896,101,401,0.113,0.448,0.25,0.36,0.36,0.36,1
+arthur_do_val,declinio,7100,994,3473,0.14,0.489,0.29,0.347,0.232,0.533,9
+monark,pre_crise,2,1,0,0.5,0.0,,1.0,1.0,1.0,1
+monark,estopim,1114,30,316,0.027,0.284,0.09,0.141,0.141,0.141,1
+monark,pico,1339,46,536,0.034,0.4,0.09,0.127,0.127,0.127,1
+monark,declinio,2171,404,892,0.186,0.411,0.45,0.312,0.193,0.423,4
+monark,pos_rito,177,20,90,0.113,0.508,0.22,0.207,0.207,0.207,1

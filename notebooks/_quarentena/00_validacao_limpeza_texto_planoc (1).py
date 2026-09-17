@@ -107,10 +107,7 @@ display(depois)
 
 # COMMAND ----------
 
-# 16/09/2026 (plano C): string raw, como LIMPEZA_SQL. Sem o r, Python e Spark comem um nivel de barras cada e
-# '^\\[IRONY\\]\\s*' vira a classe de caracteres ^[IRONY]s* (o defeito 4 de 06/09, "comeu o R de Ridicula"):
-# o teste contava 106 pares "com marcador" em vez de 21 e reprovava 127 de 600 sem que texto_limpo estivesse errado.
-teste_b = spark.sql(r"""
+teste_b = spark.sql("""
   SELECT o.id, o.case, p.caso_slug,
          o.text, p.texto,
          o.clean_text, p.texto_limpo,

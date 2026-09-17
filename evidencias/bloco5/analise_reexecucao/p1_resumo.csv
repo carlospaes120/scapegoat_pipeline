@@ -1,0 +1,3 @@
+caso,inicio_coleta,fim_coleta,dias_coletados,dias_pre_crise,media_pre_crise,data_estopim,volume_estopim,data_pico,volume_pico,primeiro_pos_rito,dias_ate_linha_base,dias_pos_rito,ultimo_dia_desde_estopim
+arthur_do_val,2022-02-25,2022-03-14,18,7,770.0,2022-03-04,507,2022-03-05,896,,,0,10
+monark,2022-02-07,2022-02-14,8,1,2.0,2022-02-08,1114,2022-02-09,1339,2022-02-13,5.0,1,6

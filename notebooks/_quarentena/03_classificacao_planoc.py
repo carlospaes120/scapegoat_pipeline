@@ -125,19 +125,14 @@ pdf["rotulo"] = rotulos
 pdf["confianca"] = confs
 assert set(pdf["rotulo"]).issubset(CLASSES), set(pdf["rotulo"])
 
-# 16/09/2026 (plano C): na reexecucao com o mesmo modelo nao ha nada a classificar; um DataFrame
-# pandas vazio nao tem esquema e spark.createDataFrame falha (CANNOT_INFER_EMPTY_SCHEMA).
-# Reclassificar nao sobrescreve: zero pendentes = nada a gravar, e isso e o resultado esperado.
-if len(pdf) == 0:
-    print("nada a classificar nesta versao do modelo; silver.classificacao nao foi alterada")
-else:
-    spark.createDataFrame(pdf[["postagem_id", "rotulo", "confianca"]]).createOrReplaceTempView("novos_rotulos")
-    spark.sql(f"""
-      INSERT INTO silver.classificacao
-        (postagem_id, esquema, rotulo, modelo, versao, confianca, classificado_em)
-      SELECT postagem_id, 'stance', rotulo, '{MODELO}', '{VERSAO_MODELO}', confianca, current_timestamp()
-      FROM novos_rotulos
-    """)
+spark.createDataFrame(pdf[["postagem_id", "rotulo", "confianca"]]).createOrReplaceTempView("novos_rotulos")
+
+spark.sql(f"""
+  INSERT INTO silver.classificacao
+    (postagem_id, esquema, rotulo, modelo, versao, confianca, classificado_em)
+  SELECT postagem_id, 'stance', rotulo, '{MODELO}', '{VERSAO_MODELO}', confianca, current_timestamp()
+  FROM novos_rotulos
+""")
 print("gravado em silver.classificacao:", spark.sql(f"SELECT count(*) FROM silver.classificacao WHERE modelo='{MODELO}' AND versao='{VERSAO_MODELO}'").collect()[0][0])
 
 # COMMAND ----------
@@ -229,7 +224,7 @@ print("verdade no teste  :", collections.Counter(verdade))
 # MAGIC USE CATALOG scapegoat;
 # MAGIC USE SCHEMA silver;
 # MAGIC
-# MAGIC -- (16/09/2026, plano C: o DROP TABLE de captura_quarentena saiu daqui; nada e apagado pelo pipeline)
+# MAGIC DROP TABLE IF EXISTS silver.captura_quarentena;
 # MAGIC
 # MAGIC SELECT 'conta' AS tabela, COUNT(*) AS linhas FROM silver.conta
 # MAGIC UNION ALL SELECT 'postagem', COUNT(*) FROM silver.postagem

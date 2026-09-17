@@ -3,9 +3,6 @@
 -- Grão: caso × data × versao_pipeline. Snapshot diário do grafo de
 -- menções (nós = autores ∪ mencionados; arestas = autor→mencionado).
 -- Responde P5–P9. Medidas NÃO aditivas.
--- 16/09/2026 (plano C, passo 3): versao_pipeline deixa de ser o rótulo fixo 'gold-v1'
---   e passa a vir do parâmetro :versao_pipeline da tarefa do job (= tag do repositório).
---   INSERT OVERWRITE: a reexecução substitui as linhas da versão anterior (cópia em scapegoat.backup.fato_rede).
 -- ============================================================
 USE CATALOG scapegoat;
 
@@ -83,7 +80,7 @@ alvo AS (
 SELECT
     mn.caso, mn.data,
     cal.dias_desde_estopim, cal.fase,
-    :versao_pipeline AS versao_pipeline,   -- parametro da tarefa do job (plano C, 16/09/2026); antes: 'gold-v1' fixo
+    'gold-v1' AS versao_pipeline,
     mn.n_nos, ma.n_arestas, mn.n_mencoes,
     ma.n_arestas / (mn.n_nos * (mn.n_nos - 1.0)) AS densidade,
     mn.gini AS gini_mencoes_recebidas,

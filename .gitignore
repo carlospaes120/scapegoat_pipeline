@@ -63,3 +63,5 @@ Thumbs.db
 Claude outputs/
 !evidencias/bloco4/grafos/*.gexf
 
+!evidencias/bloco4/*.csv
+!evidencias/bloco5/analise_reexecucao/*.csv

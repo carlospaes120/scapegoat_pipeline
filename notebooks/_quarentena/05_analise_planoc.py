@@ -17,15 +17,9 @@
 spark.sql("USE CATALOG scapegoat")
 
 # Pasta de saída das figuras: evidencias/bloco4 dentro do Git folder (vai para o GitHub no próximo commit)
-# 16/09/2026 (plano C, passo 4): a pasta vem do widget `saida`, relativa à raiz do Git folder.
-#   Rodado à mão, o padrão é o de sempre (evidencias/bloco4). No job, o parâmetro
-#   saida = evidencias/bloco5/analise_reexecucao grava a reexecução ao lado dos originais, nunca por cima.
 import os
-dbutils.widgets.text("saida", "evidencias/bloco4", "Pasta de saida (relativa ao Git folder)")
-RAIZ = "/Workspace/Users/paes120@gmail.com/scapegoat_pipeline"
-SAIDA = f"{RAIZ}/{dbutils.widgets.get('saida').strip('/')}"
+SAIDA = "/Workspace/Users/paes120@gmail.com/scapegoat_pipeline/evidencias/bloco4"
 os.makedirs(SAIDA, exist_ok=True)
-print("saida:", SAIDA)
 
 import matplotlib
 matplotlib.use("Agg")

@@ -1,0 +1,10 @@
+caso,fase,mencoes,parcela_alvo,parcela_lideres,razao_lideres_alvo
+arthur_do_val,pre_crise,10395,0.461,0.008,0.02
+arthur_do_val,estopim,646,0.415,0.0,0.0
+arthur_do_val,pico,1118,0.36,0.0,0.0
+arthur_do_val,declinio,10795,0.34,0.016,0.05
+monark,pre_crise,1,1.0,0.0,0.0
+monark,estopim,1004,0.141,0.017,0.12
+monark,pico,1500,0.127,0.0,0.0
+monark,declinio,3073,0.307,0.0,0.0
+monark,pos_rito,290,0.207,0.0,0.0

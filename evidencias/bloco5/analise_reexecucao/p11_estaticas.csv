@@ -1,0 +1,8 @@
+,arthur_do_val,monark,coincide
+"assortatividade entre autores a partir do estopim (Newman, sem neutro)",0.016,0.014,sim
+parcela das menções recebida pelos 10 maiores acusadores (máx. por fase),0.016,0.017,sim
+"parcela do alvo nas menções, média pós-estopim",0.354,0.246,não (nível)
+segundo hub: parcela institucional máxima num dia,0.372,0.334,sim
+"Gini das menções recebidas, mediana dos dias",0.904,0.809,sim
+"replies ao alvo por reply a terceiros, pós-estopim (mín–máx por fase)",0.25–0.33,0.09–0.45,sim
+autoras com uma única postagem,0.783,0.906,sim
